@@ -24,13 +24,9 @@
 
 #include "LedMatrix.h"
 
-//static RGBmatrixPanel *activePanel = NULL;
-
-LedMatrix::LedMatrix(RGBmatrixPanel matrixPanel)
-  {
-    matrix = &matrixPanel;
+LedMatrix::LedMatrix(void) 
+{
 }
-
 
 // Initializes the SPI bus used to communicate with the LED Matrix 
 void LedMatrix::begin()
@@ -38,150 +34,49 @@ void LedMatrix::begin()
   matrix->begin();
 }
 
-// Sends a specific number of zeros, which resets the addressing of the LEDs.  Need one zero sent per every 32 LEDs.
-void LedMatrix::reset()
-{
-//  for (int i = ((numLEDs + 31) / 32); i > 0; i--)
-//  {
-//    SPI.transfer(0);
-//  }
-}
-
 // Pushes an RGB value out to the current pixel.  Value must be already adjusted
 // to a 128-255 range.
 void LedMatrix::pushPixel(uint8_t red, uint8_t green, uint8_t blue)
 {
-  uint16_t c = matrix->Color888(red, green, blue);
-  matrix->drawPixel(currentX, currentY, c);
+  matrix->drawPixel(currentX, currentY, matrix->Color888(red, green, blue, true));
+  
   currentX = currentX + 1;
-  if (currentX >= x)
+  if (currentX >= xMax)
   {
     currentX = 0;
     currentY = currentY + 1;
-    if (currentY >= y)
+    if (currentY >= yMax)
     {
       currentY = 0;
     }
   }
 }
 
-// Pushes an RGB value out to the current pixel.  Accepts values ranging from
-// 0-255, and compresses to 128-255 as expected by the LED.
-//void LedMatrix::pushPixelFull(uint8_t red, uint8_t green, uint8_t blue)
-//{
-//  SPI.transfer((green >> 1) | 0x80);
-//  SPI.transfer((red >> 1) | 0x80);
-//  SPI.transfer((blue >> 1) | 0x80);
-//}
-
-// Pushes "white" to the current pixel ("perceived" intensity is roughly the
-// same as an individual color full on.
-//void LedMatrix::pushWhite()
-//{
-//  pushPixel(169,169,169);
-//}
-
-// Pushes black to the current pixel
-//void LedMatrix::pushBlack()
-//{
-//  // 128 == 0 | 0x80
-//  pushPixel(128,128,128);
-//}
-
 // Pushes black to all pixels in the LED Matrix
 void LedMatrix::clear()
 {
-  for (int yc = 0; yc < y; y++)
+  for (int yc = 0; yc < yMax; yc++)
   {
-    for (int xc = 0; xc < x; x++)
+    for (int xc = 0; xc < xMax; xc++)
     {
       pushPixel(255, 0, 0);
     }
   }
-  
-//  reset();
-
-//  for (int stripNum = 0; stripNum < stripCount; stripNum++)
-//  {
-//    for (int pixelNum = 0; pixelNum < stripLength; pixelNum++)
-//    {
-//      pushPixel(128, 128, 128);
-//    }
-//  }
-  
-//  reset();
 }
 
 // Function used to process pixels handed over as a blob of 7-bit bytes (first bit is reserved for the
 // SYSEX protocol).
 void LedMatrix::processPixelBlob(uint8_t argc, uint8_t *argv)
 {
-  // Switch between different modes of pixel handling (i.e. what the bytes in the blob actually mean)
-//  switch (blobProcessingMode) {
-//    case LED_PIXEL21:
-      // Must have at least 3 bytes passed in to be a valid 21bit pixel
-      if (argc >= 3)
-      {
-        int pixelCount = argc/3;
-        
-        for (int i = 0; i < pixelCount; i++)
-        {
-          int startPos = i*3;
-          pushPixel(argv[startPos], argv[startPos + 1], argv[startPos + 2]);
-        }
-      }
-//      break;
-      
-//    case LED_PIXEL7_PALETTE:
-//      // Same parsing logic as the PIXEL21, but dump the result into the palette arrays
-//      if (argc >= 3)
-//      {
-//        int pixelCount = argc/3;
-//        
-//        for (int i = 0; i < pixelCount; i++)
-//        {
-//          int startPos = i*3;
-//          redPalette[currentPaletteIndex] = argv[startPos] | 0x80;
-//          greenPalette[currentPaletteIndex] = argv[startPos + 1] | 0x80;
-//          bluePalette[currentPaletteIndex] = argv[startPos + 2] | 0x80;
-//          currentPaletteIndex++;
-//        }
-//      }
-//      break;
-//      
-//    case LED_PIXEL7:
-//      // Each pixel is self contained, so just have to have at least one
-//      if (argc > 0)
-//      {
-//        for (int i = 0; i < argc; i++)
-//        {
-//          pushPixel(redPalette[argv[i]], greenPalette[argv[i]], bluePalette[argv[i]]);
-//        }
-//      }
-//      break;
-//      
-//    case LED_PIXEL1:
-//      // Each byte contains 7 pixels, so we have to have at least one
-//      if (argc > 0)
-//      {
-//        for (int i = 0; i < argc; i++)
-//        {
-//          byte mask = 1;
-//          
-//          // Use a bitmask to iterate through each valid bit within the byte, translating to black/white
-//          for (mask = (0000001 << 6); mask>0; mask >>= 1) {
-//            if (argv[i] & mask)
-//            {
-//              pushWhite();
-//            }
-//            else
-//            {
-//              pushBlack();
-//            }
-//          }
-//        }
-//      }
-//      break;
-//  }
+  if (argc >= 3)
+  {
+    int pixelCount = argc/3;
+    
+    for (int i = 0; i < pixelCount; i++)
+    {
+      int startPos = i*3;
+      pushPixel(argv[startPos], argv[startPos + 1], argv[startPos + 2]);
+    }
+  }
 }
 
