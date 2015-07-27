@@ -54,43 +54,22 @@ THE SOFTWARE.
 #define B   A1
 #define C   A2
 #define D   A3
-// If your matrix has the DOUBLE HEADER input, use:
-//#define CLK 8  // MUST be on PORTB! (Use pin 11 on Mega)
-//#define LAT 9
-//#define OE  10
-//#define A   A3
-//#define B   A2
-//#define C   A1
-//#define D   A0
 
 class LedMatrix {
   public:
-    LedMatrix(RGBmatrixPanel matrixPanel);
+    LedMatrix(void);
     void begin();
-    void reset();
     void clear();
     void processPixelBlob(byte argc, byte *argv);
     
-    int blobProcessingMode = 0;
-    int currentPaletteIndex = 0;
-  private:
     RGBmatrixPanel *matrix;
-    int x = 32;
-    int y = 32;
+  private:
+    int xMax = 32;
+    int yMax = 32;
     int currentX = 0;
     int currentY = 0;
-//    int numLEDs = x * y;
-    boolean isInitialized = false;
-                
-//    byte red[x][y];
-//    byte green[x][y];
-//    byte blue[x][y];
 
     void pushPixel(uint8_t Red, uint8_t Green, uint8_t Blue);
-//    void pushPixelFull(uint8_t Red, uint8_t Green, uint8_t Blue);
-//    void pushWhite();
-//    void pushBlack();
-//    void setAll(uint8_t Red, uint8_t Green, uint8_t Blue);
 };
 
 #endif
