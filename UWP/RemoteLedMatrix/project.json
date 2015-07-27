@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
+    "StyleCop.Analyzers": "1.0.0-beta001",
     "WriteableBitmapEx": "1.5.0"
   },
   "frameworks": {

@@ -29,7 +29,7 @@ namespace RemoteLedMatrix.Helpers
         private const double FourPiOverThree = 4 * PiOverThree;
 
         /// <summary>
-        /// Gets the hue as a 0-360 value, representing the degree of rotation  
+        /// Gets the hue as a 0-360 value, representing the degree of rotation
         /// </summary>
         /// <param name="color">Color to get the hue of</param>
         /// <returns>Hue as a 0-360 value, representing the degree of rotation</returns>
@@ -129,7 +129,7 @@ namespace RemoteLedMatrix.Helpers
             double hue = source.GetHue() * (Math.PI / 180.0f);
             float intensity = source.GetIntensity() / 3.0f;
             float saturation = source.GetSaturation();
-            
+
             byte red, green, blue;
 
             if (hue < TwoPiOverThree)

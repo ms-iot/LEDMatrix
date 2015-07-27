@@ -1,6 +1,6 @@
 namespace RemoteLedMatrix.Helpers
 {
-    
+
     public class Connection
     {
         public string DisplayName { get; set; }

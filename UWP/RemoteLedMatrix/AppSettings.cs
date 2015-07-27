@@ -54,7 +54,7 @@ namespace RemoteLedMatrix
 
         protected void OnPropertyChanged(string propertyName)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
+            PropertyChangedEventHandler handler = this.PropertyChanged;
             handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
@@ -152,14 +152,14 @@ namespace RemoteLedMatrix
 
         public bool AlwaysRunning
         {
-            get { return GetValueOrDefault(true); }
-            set { AddOrUpdateValue(value); }
+            get { return this.GetValueOrDefault(true); }
+            set { this.AddOrUpdateValue(value); }
         }
 
         public bool NoListVisible => !this.ListVisible;
 
         public bool ListVisible => this.ConnectionList != null && this.ConnectionList.Any();
-        
+
         public string PreviousConnectionName
         {
             get { return this.GetValueOrDefault(""); }

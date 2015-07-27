@@ -201,6 +201,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -1787,6 +1788,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -3406,6 +3408,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -5030,6 +5033,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -6649,6 +6653,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -8273,6 +8278,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -9892,6 +9898,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "StyleCop.Analyzers/1.0.0-beta001": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -11921,6 +11928,19 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "package/services/metadata/core-properties/519ac46891b149da9e3021b01ce40cde.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "StyleCop.Analyzers/1.0.0-beta001": {
+      "sha512": "a3DmXmvqXOTWZkAcKUaBnJY6stuDxtEQCvlVOCHIOMrXGFDP9jF4AmCrbBPR2WMzTP6y+Q+ek4+zuSYTB3dbjA==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "StyleCop.Analyzers.nuspec",
+        "analyzers/dotnet/cs/StyleCop.Analyzers.dll",
+        "tools/install.ps1",
+        "tools/uninstall.ps1",
+        "package/services/metadata/core-properties/4859353d101e44008b95ea97a12ddee2.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -14657,6 +14677,7 @@
   "projectFileDependencyGroups": {
     "": [
       "Microsoft.NETCore.UniversalWindowsPlatform >= 5.0.0",
+      "StyleCop.Analyzers >= 1.0.0-beta001",
       "WriteableBitmapEx >= 1.5.0"
     ],
     "UAP,Version=v10.0": []
