@@ -99,7 +99,7 @@
     </Compile>
     <Compile Include="AppSettings.cs" />
     <Compile Include="Hardware\ILedMatrix.cs" />
-    <Compile Include="Hardware\LedPanel.cs" />
+    <Compile Include="Hardware\LedMatrixPanel.cs" />
     <Compile Include="Hardware\Lpd8806Matrix.cs" />
     <Compile Include="Helpers\ColorExtensions.cs" />
     <Compile Include="Helpers\Connection.cs" />
