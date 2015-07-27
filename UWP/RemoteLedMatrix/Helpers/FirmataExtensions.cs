@@ -10,8 +10,6 @@ namespace RemoteLedMatrix.Helpers
     public static class FirmataExtensions
     {
         public const byte SYSEX_BLOB_COMMAND = 0x7C; // send a series of 7-bit resolution characters
-        public const byte START_SYSEX = 0xF0; // start a MIDI Sysex message
-        public const byte END_SYSEX = 0xF7; // end a MIDI Sysex message
 
         public static void sendSysex(this UwpFirmata firmata, byte command)
         {
@@ -21,7 +19,7 @@ namespace RemoteLedMatrix.Helpers
 
         public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes)
         {
-            firmata.write(START_SYSEX);
+            firmata.write((byte)Command.START_SYSEX);
             firmata.write(SYSEX_BLOB_COMMAND);
 
             foreach (byte b in bytes)
@@ -29,7 +27,7 @@ namespace RemoteLedMatrix.Helpers
                 firmata.write(b);
             }
 
-            firmata.write(END_SYSEX);
+            firmata.write((byte)Command.END_SYSEX);
         }
 
         public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes, int inSetsOf)
