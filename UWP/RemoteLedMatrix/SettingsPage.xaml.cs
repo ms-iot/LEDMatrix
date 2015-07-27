@@ -24,7 +24,7 @@
 
 namespace RemoteLedMatrix
 {
-    using RemoteLedMatrix.Helpers;
+    using Helpers;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -41,7 +41,7 @@ namespace RemoteLedMatrix
     {
         public SettingsPage()
         {
-            App.CurrentAppSettings = (AppSettings) App.Current.Resources["CurrentAppSettings"];
+            App.CurrentAppSettings = (AppSettings) Application.Current.Resources["CurrentAppSettings"];
             int index = App.CurrentAppSettings.ConnectionIndex;
 
             this.InitializeComponent();
@@ -100,7 +100,7 @@ namespace RemoteLedMatrix
                 MainPage.Instance.Disconnect();
             }
         }
-        
+
         private void AlwaysRunning_Toggled(object sender, RoutedEventArgs e)
         {
             MainPage.Instance.CheckAlwaysRunning();

@@ -1,55 +1,47 @@
-﻿using RemoteLedMatrix.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Devices.Enumeration;
-using Windows.Devices.Spi;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Foundation.Diagnostics;
-using Windows.Graphics.DirectX.Direct3D11;
-using Windows.Graphics.Display;
-using Windows.Graphics.Imaging;
-using Windows.Media;
-using Windows.Media.Capture;
-using Windows.Media.MediaProperties;
-using Windows.Storage;
-using Windows.Storage.Streams;
-using Windows.System.Display;
-using Windows.UI;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Navigation;
-using Microsoft.Maker.Firmata;
-using Microsoft.Maker.RemoteWiring;
-using Microsoft.Maker.Serial;
-
-
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+﻿// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace RemoteLedMatrix
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.Maker.Firmata;
+    using Microsoft.Maker.RemoteWiring;
+    using Microsoft.Maker.Serial;
+    using Helpers;
+    using Windows.ApplicationModel;
+    using Windows.Devices.Enumeration;
+    using Windows.Foundation;
+    using Windows.Graphics.Display;
+    using Windows.Graphics.Imaging;
+    using Windows.Media;
+    using Windows.Media.Capture;
+    using Windows.Media.MediaProperties;
+    using Windows.Storage;
+    using Windows.Storage.Streams;
+    using Windows.System.Display;
+    using Windows.UI.Core;
+    using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Input;
+    using Windows.UI.Xaml.Media.Imaging;
+    using Windows.UI.Xaml.Navigation;
+    using Panel = Windows.Devices.Enumeration.Panel;
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        // Rotation metadata to apply to the preview stream (MF_MT_VIDEO_ROTATION)
+        // Reference: http://msdn.microsoft.com/en-us/library/windows/apps/xaml/hh868174.aspx
+        private static readonly Guid RotationKey = new Guid("C380465D-2271-428C-9B83-ECEA3B4A85C1");
+
         public static MainPage Instance = null;
 
         private static WriteableBitmap tempWriteableBitmap;
 
-        //private AppSettings appSettings = null;
         private readonly CoreDispatcher dispatcher;
 
         public bool IsInSettings = false;
@@ -59,13 +51,10 @@ namespace RemoteLedMatrix
         private DisplayRequest keepScreenOnRequest;
 
         #region Camera variables
+
         // Receive notifications about rotation of the UI and apply any necessary rotation to the preview stream
         private readonly DisplayInformation _displayInformation = DisplayInformation.GetForCurrentView();
         private DisplayOrientations _displayOrientation = DisplayOrientations.Portrait;
-
-        // Rotation metadata to apply to the preview stream (MF_MT_VIDEO_ROTATION)
-        // Reference: http://msdn.microsoft.com/en-us/library/windows/apps/xaml/hh868174.aspx
-        private static readonly Guid RotationKey = new Guid("C380465D-2271-428C-9B83-ECEA3B4A85C1");
 
         // Prevent the screen from sleeping while the camera is running
         private readonly DisplayRequest _displayRequest = new DisplayRequest();
@@ -84,10 +73,10 @@ namespace RemoteLedMatrix
 
         public MainPage()
         {
-            MainPage.Instance = this;
+            Instance = this;
 
-            //App.LedMatrix = new Lpd8806Matrix(48, 48);
-            App.LedMatrix = new LedPanel(32, 32);
+            // App.LedMatrix = new Lpd8806Matrix(48, 48);
+            App.LedMatrix = new LedMatrixPanel(32, 32);
 
             this.InitializeComponent();
 
@@ -96,17 +85,17 @@ namespace RemoteLedMatrix
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
             this.dispatcher = CoreWindow.GetForCurrentThread().Dispatcher;
-            App.CurrentAppSettings = (AppSettings)App.Current.Resources["CurrentAppSettings"];
+            App.CurrentAppSettings = (AppSettings)Application.Current.Resources["CurrentAppSettings"];
 
             // Useful to know when to initialize/clean up the camera
-            Application.Current.Suspending += Application_Suspending;
-            Application.Current.Resuming += Application_Resuming;
+            Application.Current.Suspending += this.Application_Suspending;
+            Application.Current.Resuming += this.Application_Resuming;
 
-            PreviewButton.Checked += PreviewButton_Checked;
-            PreviewButton.Unchecked += PreviewButton_Unchecked;
+            this.PreviewButton.Checked += this.PreviewButton_Checked;
+            this.PreviewButton.Unchecked += this.PreviewButton_Unchecked;
 
             IAsyncAction action = this.Dispatcher.RunAsync(
-                Windows.UI.Core.CoreDispatcherPriority.Normal,
+                CoreDispatcherPriority.Normal,
                 () =>
                 {
                     this.Frame.Navigate(typeof(SettingsPage));
@@ -126,13 +115,13 @@ namespace RemoteLedMatrix
         private async void Application_Suspending(object sender, SuspendingEventArgs e)
         {
             // Handle global application events only if this page is active
-            if (Frame.CurrentSourcePageType == typeof(MainPage))
+            if (this.Frame.CurrentSourcePageType == typeof(MainPage))
             {
                 SuspendingDeferral deferral = e.SuspendingOperation.GetDeferral();
 
-                await CleanupCameraAsync();
+                await this.CleanupCameraAsync();
 
-                _displayInformation.OrientationChanged -= DisplayInformation_OrientationChanged;
+                this._displayInformation.OrientationChanged -= this.DisplayInformation_OrientationChanged;
 
                 deferral.Complete();
             }
@@ -141,32 +130,32 @@ namespace RemoteLedMatrix
         private async void Application_Resuming(object sender, object o)
         {
             // Handle global application events only if this page is active
-            if (Frame.CurrentSourcePageType == typeof(MainPage))
+            if (this.Frame.CurrentSourcePageType == typeof(MainPage))
             {
                 // Populate orientation variables with the current state and register for future changes
-                _displayOrientation = _displayInformation.CurrentOrientation;
-                _displayInformation.OrientationChanged += DisplayInformation_OrientationChanged;
+                this._displayOrientation = this._displayInformation.CurrentOrientation;
+                this._displayInformation.OrientationChanged += this.DisplayInformation_OrientationChanged;
 
-                await InitializeCameraAsync();
+                await this.InitializeCameraAsync();
             }
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             // Populate orientation variables with the current state and register for future changes
-            _displayOrientation = _displayInformation.CurrentOrientation;
-            _displayInformation.OrientationChanged += DisplayInformation_OrientationChanged;
+            this._displayOrientation = this._displayInformation.CurrentOrientation;
+            this._displayInformation.OrientationChanged += this.DisplayInformation_OrientationChanged;
 
-            await InitializeCameraAsync();
+            await this.InitializeCameraAsync();
         }
 
         protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             // Handling of this event is included for completenes, as it will only fire when navigating between pages and this sample only includes one page
 
-            await CleanupCameraAsync();
+            await this.CleanupCameraAsync();
 
-            _displayInformation.OrientationChanged -= DisplayInformation_OrientationChanged;
+            this._displayInformation.OrientationChanged -= this.DisplayInformation_OrientationChanged;
         }
 
         #endregion Constructor, lifecycle and navigation
@@ -180,22 +169,22 @@ namespace RemoteLedMatrix
         /// <param name="args">The event data.</param>
         private async void DisplayInformation_OrientationChanged(DisplayInformation sender, object args)
         {
-            _displayOrientation = sender.CurrentOrientation;
+            this._displayOrientation = sender.CurrentOrientation;
 
-            if (_isPreviewing)
+            if (this._isPreviewing)
             {
-                await SetPreviewRotationAsync();
+                await this.SetPreviewRotationAsync();
             }
         }
 
         private async void GetPreviewFrameButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
             // If preview is not running, no preview frames can be acquired
-            if (!_isPreviewing) return;
+            if (!this._isPreviewing) return;
 
             //if ((ShowFrameCheckBox.IsChecked == true) || (SaveFrameCheckBox.IsChecked == true))
             //{
-                await GetPreviewFrameAsSoftwareBitmapAsync();
+                await this.GetPreviewFrameAsSoftwareBitmapAsync();
 
             this.DisplayButton.IsEnabled = true;
             //}
@@ -209,9 +198,9 @@ namespace RemoteLedMatrix
         {
             Debug.WriteLine("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
 
-            await CleanupCameraAsync();
+            await this.CleanupCameraAsync();
 
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => this.PreviewButton.IsChecked = _isPreviewing);
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => this.PreviewButton.IsChecked = this._isPreviewing);
         }
 
         #endregion Event handlers
@@ -226,10 +215,10 @@ namespace RemoteLedMatrix
         {
             Debug.WriteLine("InitializeCameraAsync");
 
-            if (_mediaCapture == null)
+            if (this._mediaCapture == null)
             {
                 // Attempt to get the back camera if one is available, but use any camera device if not
-                DeviceInformation cameraDevice = await FindCameraDeviceByPanelAsync(Windows.Devices.Enumeration.Panel.Back);
+                DeviceInformation cameraDevice = await FindCameraDeviceByPanelAsync(Panel.Back);
 
                 if (cameraDevice == null)
                 {
@@ -238,18 +227,18 @@ namespace RemoteLedMatrix
                 }
 
                 // Create MediaCapture and its settings
-                _mediaCapture = new MediaCapture();
+                this._mediaCapture = new MediaCapture();
 
                 // Register for a notification when something goes wrong
-                _mediaCapture.Failed += MediaCapture_Failed;
+                this._mediaCapture.Failed += this.MediaCapture_Failed;
 
                 MediaCaptureInitializationSettings settings = new MediaCaptureInitializationSettings { VideoDeviceId = cameraDevice.Id };
 
                 // Initialize MediaCapture
                 try
                 {
-                    await _mediaCapture.InitializeAsync(settings);
-                    _isInitialized = true;
+                    await this._mediaCapture.InitializeAsync(settings);
+                    this._isInitialized = true;
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -261,24 +250,24 @@ namespace RemoteLedMatrix
                 }
 
                 // If initialization succeeded, start the preview
-                if (_isInitialized)
+                if (this._isInitialized)
                 {
                     // Figure out where the camera is located
-                    if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
+                    if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Panel.Unknown)
                     {
                         // No information on the location of the camera, assume it's an external camera, not integrated on the device
-                        _externalCamera = true;
+                        this._externalCamera = true;
                     }
                     else
                     {
                         // Camera is fixed on the device
-                        _externalCamera = false;
+                        this._externalCamera = false;
 
                         // Only mirror the preview if the camera is on the front panel
-                        _mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
+                        this._mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Panel.Front);
                     }
 
-                    await StartPreviewAsync();
+                    await this.StartPreviewAsync();
                 }
             }
         }
@@ -292,17 +281,17 @@ namespace RemoteLedMatrix
             Debug.WriteLine("StartPreviewAsync");
 
             // Prevent the device from sleeping while the preview is running
-            _displayRequest.RequestActive();
+            this._displayRequest.RequestActive();
 
             // Set the preview source in the UI and mirror it if necessary
-            PreviewControl.Source = _mediaCapture;
-            PreviewControl.FlowDirection = _mirroringPreview ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+            this.PreviewControl.Source = this._mediaCapture;
+            this.PreviewControl.FlowDirection = this._mirroringPreview ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
             // Start the preview
             try
             {
-                await _mediaCapture.StartPreviewAsync();
-                _isPreviewing = true;
+                await this._mediaCapture.StartPreviewAsync();
+                this._isPreviewing = true;
             }
             catch (Exception ex)
             {
@@ -310,13 +299,13 @@ namespace RemoteLedMatrix
             }
 
             // Initialize the preview to the current orientation
-            if (_isPreviewing)
+            if (this._isPreviewing)
             {
-                await SetPreviewRotationAsync();
+                await this.SetPreviewRotationAsync();
             }
 
             // Enable / disable the button depending on the preview state
-            this.PreviewButton.IsChecked = _isPreviewing;
+            this.PreviewButton.IsChecked = this._isPreviewing;
         }
 
         /// <summary>
@@ -325,21 +314,21 @@ namespace RemoteLedMatrix
         private async Task SetPreviewRotationAsync()
         {
             // Only need to update the orientation if the camera is mounted on the device
-            if (_externalCamera) return;
+            if (this._externalCamera) return;
 
             // Calculate which way and how far to rotate the preview
-            int rotationDegrees = ConvertDisplayOrientationToDegrees(_displayOrientation);
+            int rotationDegrees = ConvertDisplayOrientationToDegrees(this._displayOrientation);
 
             // The rotation direction needs to be inverted if the preview is being mirrored
-            if (_mirroringPreview)
+            if (this._mirroringPreview)
             {
                 rotationDegrees = (360 - rotationDegrees) % 360;
             }
 
             // Add rotation metadata to the preview stream to make sure the aspect ratio / dimensions match when rendering and getting preview frames
-            IMediaEncodingProperties props = _mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview);
+            IMediaEncodingProperties props = this._mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview);
             props.Properties.Add(RotationKey, rotationDegrees);
-            await _mediaCapture.SetEncodingPropertiesAsync(MediaStreamType.VideoPreview, props, null);
+            await this._mediaCapture.SetEncodingPropertiesAsync(MediaStreamType.VideoPreview, props, null);
         }
 
         /// <summary>
@@ -350,23 +339,23 @@ namespace RemoteLedMatrix
         {
             try
             {
-                _isPreviewing = false;
-                await _mediaCapture.StopPreviewAsync();
+                this._isPreviewing = false;
+                await this._mediaCapture.StopPreviewAsync();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Exception when stopping the preview: {0}", ex.ToString());
             }
-            
+
             // Use the dispatcher because this method is sometimes called from non-UI threads
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                PreviewControl.Source = null;
+                this.PreviewControl.Source = null;
 
                 // Allow the device to sleep now that the preview is stopped
-                _displayRequest.RequestRelease();
+                this._displayRequest.RequestRelease();
 
-                this.PreviewButton.IsChecked = _isPreviewing;
+                this.PreviewButton.IsChecked = this._isPreviewing;
             });
         }
 
@@ -378,13 +367,13 @@ namespace RemoteLedMatrix
         private async Task GetPreviewFrameAsSoftwareBitmapAsync()
         {
             // Get information about the preview
-            VideoEncodingProperties previewProperties = _mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview) as VideoEncodingProperties;
+            VideoEncodingProperties previewProperties = this._mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview) as VideoEncodingProperties;
 
             // Create the video frame to request a SoftwareBitmap preview frame
             VideoFrame videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, (int)previewProperties.Width, (int)previewProperties.Height);
 
             // Capture the preview frame
-            using (VideoFrame currentFrame = await _mediaCapture.GetPreviewFrameAsync(videoFrame))
+            using (VideoFrame currentFrame = await this._mediaCapture.GetPreviewFrameAsync(videoFrame))
             {
                 // Collect the resulting frame
                 SoftwareBitmap previewFrame = currentFrame.SoftwareBitmap;
@@ -417,24 +406,24 @@ namespace RemoteLedMatrix
         /// <returns></returns>
         private async Task CleanupCameraAsync()
         {
-            if (_isInitialized)
+            if (this._isInitialized)
             {
-                if (_isPreviewing)
+                if (this._isPreviewing)
                 {
                     // The call to stop the preview is included here for completeness, but can be
                     // safely removed if a call to MediaCapture.Dispose() is being made later,
                     // as the preview will be automatically stopped at that point
-                    await StopPreviewAsync();
+                    await this.StopPreviewAsync();
                 }
 
-                _isInitialized = false;
+                this._isInitialized = false;
             }
 
-            if (_mediaCapture != null)
+            if (this._mediaCapture != null)
             {
-                _mediaCapture.Failed -= MediaCapture_Failed;
-                _mediaCapture.Dispose();
-                _mediaCapture = null;
+                this._mediaCapture.Failed -= this.MediaCapture_Failed;
+                this._mediaCapture.Dispose();
+                this._mediaCapture = null;
             }
         }
 
@@ -448,7 +437,7 @@ namespace RemoteLedMatrix
         /// <param name="desiredPanel">The panel on the device that the desired camera is mounted on</param>
         /// <returns>A DeviceInformation instance with a reference to the camera mounted on the desired panel if available,
         ///          any other camera if not, or null if no camera is available.</returns>
-        private static async Task<DeviceInformation> FindCameraDeviceByPanelAsync(Windows.Devices.Enumeration.Panel desiredPanel)
+        private static async Task<DeviceInformation> FindCameraDeviceByPanelAsync(Panel desiredPanel)
         {
             // Get available devices for capturing pictures
             DeviceInformationCollection allVideoDevices = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
@@ -559,23 +548,23 @@ namespace RemoteLedMatrix
 
         private void PreviewButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_isPreviewing)
+            if (this._isPreviewing)
             {
-                CleanupCameraAsync();
+                this.CleanupCameraAsync();
             }
             else
             {
-                InitializeCameraAsync();
+                this.InitializeCameraAsync();
             }
         }
 
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
-            if (TestButton.IsChecked.Value)
+            if (this.TestButton.IsChecked.Value)
             {
                 this.captureTimer = new DispatcherTimer();
                 this.captureTimer.Interval = new TimeSpan(0, 0, 0, 1);
-                this.captureTimer.Tick += captureTimerTick;
+                this.captureTimer.Tick += this.captureTimerTick;
                 this.captureTimer.Start();
             }
             else
@@ -593,7 +582,7 @@ namespace RemoteLedMatrix
         {
             ((DispatcherTimer)sender).Stop();
             IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal, 
+                CoreDispatcherPriority.Normal,
                 async () =>
                 {
                     await this.GetPreviewFrameAsSoftwareBitmapAsync();
@@ -613,7 +602,7 @@ namespace RemoteLedMatrix
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.Message);
                 return;
             }
 
@@ -661,9 +650,9 @@ namespace RemoteLedMatrix
 
         public async void Disconnect()
         {
-            if (currentConnection != null)
+            if (this.currentConnection != null)
             {
-                await dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                await this.dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Disconnecting;
                 });
@@ -674,7 +663,7 @@ namespace RemoteLedMatrix
                 this.currentConnection = null;
 
                 await this.dispatcher.RunAsync(
-                    CoreDispatcherPriority.Normal, 
+                    CoreDispatcherPriority.Normal,
                     () =>
                     {
                         App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.NotConnected;
@@ -703,8 +692,8 @@ namespace RemoteLedMatrix
         /// <summary>
         /// Connects to a remote device over firmata
         /// </summary>
-        /// <param name="selectedConnection"></param>
-        /// <returns></returns>
+        /// <param name="selectedConnection">Connection to connect to </param>
+        /// <returns>true if connection succeeded.</returns>
         public async Task<bool> Connect(Connection selectedConnection)
         {
             bool result = false;
@@ -750,10 +739,10 @@ namespace RemoteLedMatrix
                 App.Firmata.begin(App.SerialStream);
                 App.Firmata.startListening();
 
-                //start a timer for connection timeout
+                // start a timer for connection timeout
                 this.timeout = new DispatcherTimer();
                 this.timeout.Interval = new TimeSpan(0, 0, 30);
-                this.timeout.Tick += Connection_TimeOut;
+                this.timeout.Tick += this.Connection_TimeOut;
                 this.timeout.Start();
 
                 result = true;
@@ -770,7 +759,7 @@ namespace RemoteLedMatrix
             return result;
         }
 
-        private void OnConnectionLost()
+        private void OnConnectionLost(string message)
         {
             IAsyncAction action = this.Dispatcher.RunAsync(
                 CoreDispatcherPriority.Normal,
@@ -780,15 +769,14 @@ namespace RemoteLedMatrix
                     this.Frame.Navigate(typeof(SettingsPage));
                 });
 
-            Debug.WriteLine("Connection lost!");
-
+            Debug.WriteLine("Connection lost!  '{0}'", message);
         }
 
         private void OnConnectionFailed(string message)
         {
             this.timeout.Stop();
             IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal, 
+                CoreDispatcherPriority.Normal,
                 () =>
                 {
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.CouldNotConnect;
@@ -803,7 +791,7 @@ namespace RemoteLedMatrix
             App.CurrentAppSettings.PreviousConnectionName = this.currentConnection.DisplayName;
 
             IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal, 
+                CoreDispatcherPriority.Normal,
                 () =>
                 {
                     this.Frame.Navigate(typeof(MainPage));
@@ -813,7 +801,7 @@ namespace RemoteLedMatrix
         private void Connection_TimeOut(object sender, object e)
         {
             IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal, 
+                CoreDispatcherPriority.Normal,
                 () =>
                 {
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.CouldNotConnect;

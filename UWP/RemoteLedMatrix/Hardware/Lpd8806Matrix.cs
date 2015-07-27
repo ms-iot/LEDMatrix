@@ -1,18 +1,21 @@
 ﻿
-using Windows.UI.Xaml.Media.Imaging;
-using RemoteLedMatrix.Hardware;
 
 namespace RemoteLedMatrix
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Hardware;
+    using Helpers;
     using Windows.UI;
-    using Microsoft.Maker.Firmata;
-    using RemoteLedMatrix.Helpers;
+    using Windows.UI.Xaml.Media.Imaging;
 
-
+    /// <summary>
+    /// Implementation of <see cref="ILedMatrix"/> for LPD8806/WS2801 based RGB leds, arranged into a
+    /// single long serial strand.  The first pixel is in the bottom left hand corner with the strand running
+    /// upwards.  The second strand starts at the top and runs downwards. Functionally, this means we need to
+    /// flip every other column of color data to display properly.
+    /// </summary>
     public class Lpd8806Matrix : ILedMatrix
     {
         /// <summary>
@@ -28,87 +31,77 @@ namespace RemoteLedMatrix
         public const byte LED_RESET = 0x43;
 
         /// <summary>
-        /// Command telling the arduino to parse the blob data that comes next as monochrome pixel data
+        /// Magic weird pixel.  Skip or everything gets offset weird.
         /// </summary>
-        public const byte LED_PIXEL1 = 0x46;
-
-        /// <summary>
-        /// Command telling the arduino to parse the blob data that comes next as indexed palette pixel data
-        /// </summary>
-        public const byte LED_PIXEL7 = 0x45;
-
-        /// <summary>
-        /// Command telling the arduino to parse the blob data that comes next as palette data for a 7-bit indexed color stream
-        /// </summary>
-        public const byte LED_PIXEL7_PALETTE = 0x47;
-
-        /// <summary>
-        /// Command telling the arduino to parse the blob data that comes next as full 21-bit RGB pixel data
-        /// </summary>
-        public const byte LED_PIXEL21 = 0x42;
-
-        // Magic weird pixel.  Skip or everything gets offset weird.
         public const int MagicPixel = 947;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Lpd8806Matrix"/> class.
+        /// </summary>
+        /// <param name="width">Width in pixels of the LED Matrix</param>
+        /// <param name="height">Height in pixels of the LED Matrix</param>
         public Lpd8806Matrix(int width, int height)
         {
             this.PixelWidth = width;
             this.PixelHeight = height;
         }
 
-        public int PixelHeight { get; private set; }
-        public int PixelWidth { get; private set; }
+        /// <summary>
+        /// Gets a value representing the number of pixels high the matrix is
+        /// </summary>
+        /// <value>
+        /// A value representing the number of pixels high the matrix is
+        /// </value>
+        public int PixelHeight { get; }
 
+        /// <summary>
+        /// Gets a value representing the number of pixels wide the matrix is
+        /// </summary>
+        /// <value>
+        /// A value representing the number of pixels wide matrix is
+        /// </value>
+        public int PixelWidth { get; }
+
+        /// <summary>
+        /// Sends a command to initialize the LED matrix
+        /// </summary>
         public void Initialize()
         {
             App.Firmata.sendSysex(LED_CONFIG);
             App.Firmata.sendSysex(LED_RESET);
         }
 
-        public async Task DisplayImage(WriteableBitmap bitmap)
+        /// <summary>
+        /// Displays an image on the LED matrix
+        /// </summary>
+        /// <param name="image">Bitmap to display on the LED matrix</param>
+        /// <returns>Task for tracking the status of the async call</returns>
+        public async Task DisplayImage(WriteableBitmap image)
         {
-            WriteableBitmap resizedBitmap = bitmap.Resize(
-                48, 
-                48,
+            WriteableBitmap resizedBitmap = image.Resize(
+                this.PixelWidth,
+                this.PixelHeight,
                 WriteableBitmapExtensions.Interpolation.Bilinear);
 
             List<Color> colors = resizedBitmap.Flip(WriteableBitmapExtensions.FlipMode.Horizontal).GetColorsFromWriteableBitmap();
 
             colors = colors.FlipEvenColumns();
 
-            List<Color> perceptualColors = new List<Color>();
-
-            foreach (var color in colors)
-            {
-                perceptualColors.Add(color.ToPerceptual().ApplyGamma(1.5));
-            }
+            IEnumerable<Color> perceptualColors = colors.Select(
+                color =>
+                    color
+                        .ToPerceptual()
+                        .ApplyGamma(1.5));
 
             colors.Clear();
 
             colors.AddRange(perceptualColors);
 
-            //List<Color> colors = new List<Color>();
-
-            //for (int i = 0; i < 2304; i++)
-            //{
-            //    colors.Add(Color.FromArgb(255, 255, 0, 0));
-            //}
-
-            //List<Color> colorsAdjusted = new List<Color>();
-
-            //colorsAdjusted.AddRange(colors);
-
-            //colors.ForEach(c => colorsAdjusted.Add(c.ApplyGamma(0.15)));
-            //colors.ForEach(c => colorsAdjusted.Add(c.ToPerceptual()));
-
             colors.RemoveAt(MagicPixel);
 
-            var bytes = colors.Get21BitPixelBytes();
+            IEnumerable<byte> bytes = colors.Get21BitPixelBytes();
 
             App.Firmata.sendSysex(LED_RESET);
-            await Task.Delay(1);
-
-            App.Firmata.sendSysex(LED_PIXEL21);
             await Task.Delay(1);
 
             App.Firmata.sendPixelBlob(bytes, 30);
