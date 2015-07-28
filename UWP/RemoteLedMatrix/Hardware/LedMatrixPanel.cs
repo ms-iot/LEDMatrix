@@ -62,7 +62,7 @@ namespace RemoteLedMatrix
                 this.PixelWidth,
                 WriteableBitmapExtensions.Interpolation.Bilinear);
 
-            List<Color> colors = resizedBitmap.GetColorsFromWriteableBitmap();
+            List<Color> colors = resizedBitmap.ToColorList();
 
             //colors.ForEach(c => colorsAdjusted.Add(c.ApplyGamma(1.5)));
             //colors.ForEach(c => colorsAdjusted.Add(c.ToPerceptual()));

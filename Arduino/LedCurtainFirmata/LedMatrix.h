@@ -32,11 +32,6 @@ THE SOFTWARE.
 
 // Custom SYSEX commands related to the LED Matrix
 #define LED_RESET 0x43
-#define LED_CONFIG 0x44
-#define LED_PIXEL21 0x42 // 21bit color (7bits each for R,G,B)
-#define LED_PIXEL7 0x45 // 7bit indexed color
-#define LED_PIXEL7_PALETTE 0x47 // 7bit indexed color palette
-#define LED_PIXEL1 0x46 // 1bit color (7 pixels per byte)
 
 class LedMatrix {
   public:
@@ -51,7 +46,6 @@ class LedMatrix {
     int stripCount = 48;
     int stripLength = 48;
     int numLEDs = stripCount * stripLength;
-    int magicPixel = 947;                     // Weirdly broken pixel on the matrix.  Have to skip or alignment breaks.
     boolean isInitialized = false;
                 
     byte redPalette[128];

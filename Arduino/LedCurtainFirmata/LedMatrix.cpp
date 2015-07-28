@@ -98,72 +98,16 @@ void LedMatrix::clear()
 // SYSEX protocol).
 void LedMatrix::processPixelBlob(byte argc, byte *argv)
 {
-  // Switch between different modes of pixel handling (i.e. what the bytes in the blob actually mean)
-  switch (blobProcessingMode) {
-    case LED_PIXEL21:
-      // Must have at least 3 bytes passed in to be a valid 21bit pixel
-      if (argc >= 3)
-      {
-        int pixelCount = argc/3;
-        
-        for (int i = 0; i < pixelCount; i++)
-        {
-          int startPos = i*3;
-          pushPixel(argv[startPos] | 0x80, argv[startPos + 1] | 0x80, argv[startPos + 2] | 0x80);
-        }
-      }
-      break;
-      
-    case LED_PIXEL7_PALETTE:
-      // Same parsing logic as the PIXEL21, but dump the result into the palette arrays
-      if (argc >= 3)
-      {
-        int pixelCount = argc/3;
-        
-        for (int i = 0; i < pixelCount; i++)
-        {
-          int startPos = i*3;
-          redPalette[currentPaletteIndex] = argv[startPos] | 0x80;
-          greenPalette[currentPaletteIndex] = argv[startPos + 1] | 0x80;
-          bluePalette[currentPaletteIndex] = argv[startPos + 2] | 0x80;
-          currentPaletteIndex++;
-        }
-      }
-      break;
-      
-    case LED_PIXEL7:
-      // Each pixel is self contained, so just have to have at least one
-      if (argc > 0)
-      {
-        for (int i = 0; i < argc; i++)
-        {
-          pushPixel(redPalette[argv[i]], greenPalette[argv[i]], bluePalette[argv[i]]);
-        }
-      }
-      break;
-      
-    case LED_PIXEL1:
-      // Each byte contains 7 pixels, so we have to have at least one
-      if (argc > 0)
-      {
-        for (int i = 0; i < argc; i++)
-        {
-          byte mask = 1;
-          
-          // Use a bitmask to iterate through each valid bit within the byte, translating to black/white
-          for (mask = (0000001 << 6); mask>0; mask >>= 1) {
-            if (argv[i] & mask)
-            {
-              pushWhite();
-            }
-            else
-            {
-              pushBlack();
-            }
-          }
-        }
-      }
-      break;
+  // Must have at least 3 bytes passed in to be a valid 21bit pixel
+  if (argc >= 3)
+  {
+    int pixelCount = argc/3;
+    
+    for (int i = 0; i < pixelCount; i++)
+    {
+      int startPos = i*3;
+      pushPixel(argv[startPos] | 0x80, argv[startPos + 1] | 0x80, argv[startPos + 2] | 0x80);
+    }
   }
 }
 
