@@ -83,18 +83,14 @@ namespace RemoteLedMatrix
                 this.PixelHeight,
                 WriteableBitmapExtensions.Interpolation.Bilinear);
 
-            List<Color> colors = resizedBitmap.Flip(WriteableBitmapExtensions.FlipMode.Horizontal).GetColorsFromWriteableBitmap();
+            List<Color> colors = resizedBitmap.Flip(WriteableBitmapExtensions.FlipMode.Horizontal).ToColorList();
 
-            colors = colors.FlipEvenColumns();
+            colors = colors.FlipEvenColumns(this.PixelHeight);
 
-            IEnumerable<Color> perceptualColors = colors.Select(
-                color =>
-                    color
-                        .ToPerceptual()
-                        .ApplyGamma(1.5));
+            List<Color> perceptualColors = colors.Select(
+                color => color.ToPerceptual().ApplyGamma(1.5)).ToList();
 
             colors.Clear();
-
             colors.AddRange(perceptualColors);
 
             colors.RemoveAt(MagicPixel);

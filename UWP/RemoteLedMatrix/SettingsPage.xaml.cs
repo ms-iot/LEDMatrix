@@ -41,18 +41,19 @@ namespace RemoteLedMatrix
     {
         public SettingsPage()
         {
-            App.CurrentAppSettings = (AppSettings) Application.Current.Resources["CurrentAppSettings"];
-            int index = App.CurrentAppSettings.ConnectionIndex;
+            App.CurrentAppSettings = (AppSettings)Application.Current.Resources["CurrentAppSettings"];
+            //int index = App.CurrentAppSettings.ConnectionIndex;
 
             this.InitializeComponent();
 
-            App.CurrentAppSettings.ConnectionIndex = Math.Max(0, index);
+            //App.CurrentAppSettings.ConnectionIndex = Math.Max(0, index);
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             MainPage.Instance.IsInSettings = true;
             MainPage.Instance.PopulateList();
+
             base.OnNavigatedTo(e);
         }
 
@@ -66,8 +67,8 @@ namespace RemoteLedMatrix
         {
             if (this.connectList.SelectedItem != null)
             {
-                var selectedConnection = this.connectList.SelectedItem as Connection;
-                var result = await MainPage.Instance.Connect(selectedConnection);
+                App.CurrentAppSettings.SelectedConnection = this.connectList.SelectedItem as Connection;
+                var result = await MainPage.Instance.Connect(App.CurrentAppSettings.SelectedConnection);
                 if (result)
                 {
                     await Task.Delay(2000);

@@ -37,14 +37,6 @@ THE SOFTWARE.
 // Custom SYSEX command for high-speed data transfer.  
 #define SYSEX_BLOB_COMMAND 0x7C
 
-// Custom SYSEX commands related to the LED Matrix
-#define LED_RESET 0x43
-#define LED_CONFIG 0x44
-#define LED_PIXEL21 0x42 // 21bit color (7bits each for R,G,B)
-#define LED_PIXEL7 0x45 // 7bit indexed color
-#define LED_PIXEL7_PALETTE 0x47 // 7bit indexed color palette
-#define LED_PIXEL1 0x46 // 1bit color (7 pixels per byte)
-
 // If your 32x32 matrix has the SINGLE HEADER input,
 // use this pinout:
 #define CLK 11  // MUST be on PORTB! (Use pin 11 on Mega)

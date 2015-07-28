@@ -34,8 +34,7 @@ void LedMatrix::begin()
   matrix->begin();
 }
 
-// Pushes an RGB value out to the current pixel.  Value must be already adjusted
-// to a 128-255 range.
+// Pushes an RGB value out to the current pixel.
 void LedMatrix::pushPixel(uint8_t red, uint8_t green, uint8_t blue)
 {
   matrix->drawPixel(currentX, currentY, matrix->Color888(red, green, blue, true));
@@ -52,7 +51,7 @@ void LedMatrix::pushPixel(uint8_t red, uint8_t green, uint8_t blue)
   }
 }
 
-// Pushes black to all pixels in the LED Matrix
+// Pushes red to all pixels in the LED Matrix
 void LedMatrix::clear()
 {
   for (int yc = 0; yc < yMax; yc++)
@@ -75,7 +74,7 @@ void LedMatrix::processPixelBlob(uint8_t argc, uint8_t *argv)
     for (int i = 0; i < pixelCount; i++)
     {
       int startPos = i*3;
-      pushPixel(argv[startPos], argv[startPos + 1], argv[startPos + 2]);
+      pushPixel(argv[startPos] << 1, argv[startPos + 1] << 1, argv[startPos + 2] << 1);
     }
   }
 }

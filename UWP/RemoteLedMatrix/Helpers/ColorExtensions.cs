@@ -1,16 +1,15 @@
 ﻿
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.UI.Xaml.Media.Imaging;
-
 namespace RemoteLedMatrix.Helpers
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Windows.UI;
+    using Windows.UI.Xaml.Media.Imaging;
 
+    /// <summary>
+    /// Class of extensions to make dealing with Colors easier
+    /// </summary>
     public static class ColorExtensions
     {
         /// <summary>
@@ -106,7 +105,7 @@ namespace RemoteLedMatrix.Helpers
                 return 0f;
             }
 
-            return (1 - (min / (float)max));
+            return 1 - (min / (float)max);
         }
 
         /// <summary>
@@ -124,6 +123,12 @@ namespace RemoteLedMatrix.Helpers
                 ApplyGammaToChannel(source.B, gamma));
         }
 
+        /// <summary>
+        /// Shifts a color's intensity so that it looks perceptually correct when
+        /// displayed on RGB leds.
+        /// </summary>
+        /// <param name="source">Unadjusted color to shift</param>
+        /// <returns>Perceptually adjusted color</returns>
         public static Color ToPerceptual(this Color source)
         {
             double hue = source.GetHue() * (Math.PI / 180.0f);
@@ -158,6 +163,13 @@ namespace RemoteLedMatrix.Helpers
             return Color.FromArgb(255, red, green, blue);
         }
 
+        /// <summary>
+        /// Transform one of three for converting a HSI-based color to a perceptually adjusted RGB value
+        /// </summary>
+        /// <param name="hue">Hue of the color</param>
+        /// <param name="saturation">Saturation of the color</param>
+        /// <param name="intensity">Intensity of the color</param>
+        /// <returns>Byte representing the color after transformation</returns>
         private static byte perceptualTransformA(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 + (saturation * (Math.Cos(hue) / Math.Cos(PiOverThree - hue))));
@@ -165,6 +177,13 @@ namespace RemoteLedMatrix.Helpers
             return (byte)(255 * value);
         }
 
+        /// <summary>
+        /// Transform two of three for converting a HSI-based color to a perceptually adjusted RGB value
+        /// </summary>
+        /// <param name="hue">Hue of the color</param>
+        /// <param name="saturation">Saturation of the color</param>
+        /// <param name="intensity">Intensity of the color</param>
+        /// <returns>Byte representing the color after transformation</returns>
         private static byte perceptualTransformB(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 + (saturation * (1 - (Math.Cos(hue) / Math.Cos(PiOverThree - hue)))));
@@ -172,6 +191,13 @@ namespace RemoteLedMatrix.Helpers
             return (byte)(255 * value);
         }
 
+        /// <summary>
+        /// Transform three of three for converting a HSI-based color to a perceptually adjusted RGB value
+        /// </summary>
+        /// <param name="hue">Hue of the color</param>
+        /// <param name="saturation">Saturation of the color</param>
+        /// <param name="intensity">Intensity of the color</param>
+        /// <returns>Byte representing the color after transformation</returns>
         private static byte perceptualTransformC(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 - saturation);
@@ -190,7 +216,12 @@ namespace RemoteLedMatrix.Helpers
             return (byte)(255 * Math.Pow(value / (double)255, gamma));
         }
 
-        public static List<Color> GetColorsFromWriteableBitmap(this WriteableBitmap bitmap)
+        /// <summary>
+        /// Gets a list of all the pixels in a bitmap, serialized to a flat list
+        /// </summary>
+        /// <param name="bitmap">Bitmap to serialize into a list of colors</param>
+        /// <returns>List of colors that make up all the pixels in the source bitmap</returns>
+        public static List<Color> ToColorList(this WriteableBitmap bitmap)
         {
             List<Color> pixels = new List<Color>();
 
@@ -203,54 +234,13 @@ namespace RemoteLedMatrix.Helpers
             }
 
             return pixels;
-
-            //return bitmap.PixelBuffer.ToArray().GetColorsFromPixelBytes();
-        }
-
-
-        public static List<Color> GetColorsFromPixelBytes(this byte[] pixelBuffer)
-        {
-            List<Color> pixels = new List<Color>();
-
-            for (int x = 0; x < 48; x++)
-            {
-                List<Color> columnData = new List<Color>();
-
-                for (int y = 0; y < 48; y++)
-                {
-                    int position = ((y * 48) + x) * 4;
-                    columnData.Add(
-                        // Buffer is in BGRA format
-                        Color.FromArgb(
-                            255,
-                            pixelBuffer[position + 2],
-                            pixelBuffer[position + 1],
-                            pixelBuffer[position]
-                            ));
-                }
-
-                pixels.AddRange(columnData);
-            }
-
-            return pixels;
         }
 
         /// <summary>
-        /// Converts a 8-bit RGB Color into three 7-bit bytes, each of which was bit-shifted
-        /// one to the right.
+        /// Extension method for converting a color to three 7-bit bytes
         /// </summary>
-        /// <param name="color">Color to convert</param>
-        /// <returns>IEnumerable of bytes of the shifted values</returns>
-        public static IEnumerable<byte> To7BitPixelBytes(this Color color)
-        {
-            return new[]
-            {
-                (byte)(color.R >> 1),
-                (byte)(color.G >> 1),
-                (byte)(color.B >> 1)
-            };
-        }
-
+        /// <param name="color">Color to convert to bytes</param>
+        /// <returns>Array of three bytes representing the input color</returns>
         public static IEnumerable<byte> To21BitPixelBytes(this Color color)
         {
             return new[]
@@ -264,18 +254,24 @@ namespace RemoteLedMatrix.Helpers
         /// <summary>
         /// Converts an IEnumerable of colors into an IEnumerable of bytes
         /// </summary>
-        /// <param name="colors"></param>
-        /// <returns></returns>
+        /// <param name="colors">List of colors to get bytes for</param>
+        /// <returns>List of bytes, representing the input list of colors</returns>
         public static IEnumerable<byte> Get21BitPixelBytes(this IEnumerable<Color> colors)
         {
             return colors.SelectMany(c => c.To21BitPixelBytes());
         }
 
-        public static List<Color> FlipEvenColumns(this List<Color> pixels)
+        /// <summary>
+        /// Flips alternating columns of colors in an image
+        /// </summary>
+        /// <param name="pixels">Color data to flip columns for</param>
+        /// <param name="pixelsPerColumn">How many pixels are in each column</param>
+        /// <returns>List of colors, with alternating columns flipped</returns>
+        public static List<Color> FlipEvenColumns(this List<Color> pixels, int pixelsPerColumn)
         {
             List<Color> pixelsFlipped = new List<Color>();
 
-            var pixelColumns = pixels.InSetsOf(48);
+            var pixelColumns = pixels.InSetsOf(pixelsPerColumn);
 
             bool flip = true;
             foreach (var column in pixelColumns)
