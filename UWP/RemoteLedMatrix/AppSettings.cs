@@ -22,19 +22,16 @@
     THE SOFTWARE.
 */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI.Xaml;
-using RemoteLedMatrix.Helpers;
-
 namespace RemoteLedMatrix
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using RemoteLedMatrix.Helpers;
+
     public enum ConnectionState
     {
         NotConnected = 0,
@@ -48,6 +45,7 @@ namespace RemoteLedMatrix
     {
         private Windows.Storage.ApplicationDataContainer localSettings;
         private Connections connectionList;
+        private Connection selectedConnection;
 
         public event PropertyChangedEventHandler PropertyChanged;
         private string[] ConnectionStateText;
@@ -142,7 +140,11 @@ namespace RemoteLedMatrix
 
         public bool IsListening
         {
-            get { return this.isListening; }
+            get
+            {
+                return this.isListening;
+            }
+
             set
             {
                 this.isListening = value;
@@ -168,7 +170,11 @@ namespace RemoteLedMatrix
 
         public int ConnectionIndex
         {
-            get { return this.GetValueOrDefault(0); }
+            get
+            {
+                return this.GetValueOrDefault(0);
+            }
+
             set
             {
                 this.AddOrUpdateValue(value);
@@ -179,20 +185,45 @@ namespace RemoteLedMatrix
 
         public Connections ConnectionList
         {
-            get { return this.connectionList; }
+            get
+            {
+                return this.connectionList;
+            }
+
             set
             {
                 this.connectionList = value;
                 this.OnPropertyChanged("ConnectionList");
+                this.OnPropertyChanged("SelectedConnection");
                 this.OnPropertyChanged("ListVisible");
                 this.OnPropertyChanged("NoListVisible");
             }
         }
 
+        public Connection SelectedConnection
+        {
+            get
+            {
+                return this.selectedConnection;
+            }
+
+            set
+            {
+                this.selectedConnection = value;
+                this.OnPropertyChanged("SelectedConnection");
+                this.OnPropertyChanged("ConnectionList");
+            }
+        }
+
         public int CurrentConnectionState
         {
-            get { return this.GetValueOrDefault((int) ConnectionState.NotConnected); }
-            set {
+            get
+            {
+                return this.GetValueOrDefault((int)ConnectionState.NotConnected);
+            }
+
+            set
+            {
                 this.AddOrUpdateValue(value);
                 this.OnPropertyChanged("CurrentConnectionStateText");
             }

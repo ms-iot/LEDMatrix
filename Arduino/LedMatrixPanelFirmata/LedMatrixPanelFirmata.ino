@@ -23,7 +23,7 @@
   Portions modified by Microsoft Open Technologies, Inc.
 
 	- Enabled LedMatrix functionality via additional custom SYSEX calls 
-	- Initialize firmata over Serial1 (external serial line on Arduino Leonardo)
+	- Initialize firmata over Serial1
 */
 
 #include <Servo.h>
@@ -55,7 +55,8 @@
  * GLOBAL VARIABLES
  *============================================================================*/
 
-#define CLK 11  // MUST be on PORTB! (Use pin 11 on Mega)
+/* led matrix */
+#define CLK 11
 #define OE  9
 #define LAT 10
 #define A   A0
@@ -63,11 +64,7 @@
 #define C   A2
 #define D   A3
 RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
-
-/* led matrix control object */
 LedMatrix ledMatrix;
-
-int ctsPin = 2;
 
 /* analog inputs */
 int analogInputsToReport = 0; // bitwise array to store pin reporting
@@ -251,8 +248,8 @@ void checkDigitalInputs(void)
  */
 void setPinModeCallback(byte pin, int mode)
 {
-//  if (pinConfig[pin] == IGNORE)
-//    return;
+  if (pinConfig[pin] == IGNORE)
+    return;
 
   if (pinConfig[pin] == I2C && isI2CEnabled && mode != I2C) {
     // disable i2c so pins can be used for other functions
@@ -426,9 +423,6 @@ void sysexCallback(byte command, byte argc, byte *argv)
   int slaveRegister;
   unsigned int delayTime;
 
-//  Serial.println("SYSEX: " + String(command, HEX) + "  SIZE: " + String(argc));
-  Serial.println(command, HEX);
-  
   switch (command) {
     
     /* BEGIN CUSTOM SYSEX COMMANDS */
@@ -436,42 +430,8 @@ void sysexCallback(byte command, byte argc, byte *argv)
     // Custom SYSEX command for high-speed data transfer.  Will contain a series
     // of up to 30 7-bit resolution bytes
     case SYSEX_BLOB_COMMAND:
-      //ledMatrix.blobProcessingMode = LED_PIXEL21;
       ledMatrix.processPixelBlob(argc, argv);
       break;
-    // Custom SYSEX command to enable SPI communication and initialize the matrix
-//    case LED_CONFIG:
-//        ledMatrix.begin();
-//        ledMatrix.reset();
-//        ledMatrix.clear();
-//      break;
-    // Custom SYSEX command to reset addressing of the LEDs in the matrix (sent
-    // before and after each "frame" of pixel data)
-//    case LED_RESET:
-//      ledMatrix.reset();
-//      break;
-    // Custom SYSEX command to configure the blob processor to parse data in sets 
-    // of 3 bytes, with 7-bits for Red, Green, and Blue
-//    case LED_PIXEL21:
-//      ledMatrix.blobProcessingMode = LED_PIXEL21;
-//      break;
-    // Custom SYSEX command to configure the blob processor to parse each byte
-    // as a 7-bit indexed color (each byte represents a distinct RGB color)
-//    case LED_PIXEL7:
-//      ledMatrix.blobProcessingMode = LED_PIXEL7;
-//      break;
-    // Custom SYSEX command to configure the blob processor to parse each byte
-    // as a 7 1-bit color values (each bit represents either black or white)
-//    case LED_PIXEL1:
-//      ledMatrix.blobProcessingMode = LED_PIXEL1;
-//      break;
-    // Custom SYSEX command to configure the blob processor to parse data in sets
-    // of three bytes (same as 21-bit mode), but to drop the RGB values into the
-    // indexed palette arrays.
-//    case LED_PIXEL7_PALETTE:
-//      ledMatrix.blobProcessingMode = LED_PIXEL7_PALETTE;
-//      ledMatrix.currentPaletteIndex = 0; // Reset index position to zero, so we start filling the arrays at the beginning.
-//      break;
 
     /* END CUSTOM SYSEX COMMANDS */
     
@@ -745,7 +705,7 @@ void setup()
   delay(5000);
   Serial.println("Debug output is working");
 
-  Serial1.begin(115200);   // Use Serial1 (hardware serial) on the Leonardo for actual communication
+  Serial1.begin(115200);   // Use Serial1 (hardware serial) for actual communication
 
   Firmata.setFirmwareVersion(FIRMATA_MAJOR_VERSION, FIRMATA_MINOR_VERSION);
 
@@ -760,9 +720,9 @@ void setup()
   Firmata.begin(Serial1);
   systemResetCallback();  // reset to default config
 
+  // Start communication with the LED Panel
   matrix.begin();
   ledMatrix.matrix = &matrix;
-  
   ledMatrix.clear();
 }
 
@@ -780,10 +740,7 @@ void loop()
   /* STREAMREAD - processing incoming messagse as soon as possible, while still
    * checking digital inputs.  */
   while (Firmata.available())
-  {
     Firmata.processInput();
-  }
-
 
   // TODO - ensure that Stream buffer doesn't go over 60 bytes
 

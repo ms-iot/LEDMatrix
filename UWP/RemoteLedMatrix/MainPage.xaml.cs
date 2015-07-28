@@ -9,7 +9,7 @@ namespace RemoteLedMatrix
     using Microsoft.Maker.Firmata;
     using Microsoft.Maker.RemoteWiring;
     using Microsoft.Maker.Serial;
-    using Helpers;
+    using RemoteLedMatrix.Helpers;
     using Windows.ApplicationModel;
     using Windows.Devices.Enumeration;
     using Windows.Foundation;
@@ -75,8 +75,8 @@ namespace RemoteLedMatrix
         {
             Instance = this;
 
-            // App.LedMatrix = new Lpd8806Matrix(48, 48);
-            App.LedMatrix = new LedMatrixPanel(32, 32);
+            App.LedMatrix = new Lpd8806Matrix(48, 48);
+            //App.LedMatrix = new LedMatrixPanel(32, 32);
 
             this.InitializeComponent();
 
@@ -180,18 +180,14 @@ namespace RemoteLedMatrix
         private async void GetPreviewFrameButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
             // If preview is not running, no preview frames can be acquired
-            if (!this._isPreviewing) return;
+            if (!this._isPreviewing)
+            {
+                return;
+            }
 
-            //if ((ShowFrameCheckBox.IsChecked == true) || (SaveFrameCheckBox.IsChecked == true))
-            //{
-                await this.GetPreviewFrameAsSoftwareBitmapAsync();
+            await this.GetPreviewFrameAsSoftwareBitmapAsync();
 
             this.DisplayButton.IsEnabled = true;
-            //}
-            //else
-            //{
-            //    await GetPreviewFrameAsD3DSurfaceAsync();
-            //}
         }
 
         private async void MediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
@@ -264,7 +260,7 @@ namespace RemoteLedMatrix
                         this._externalCamera = false;
 
                         // Only mirror the preview if the camera is on the front panel
-                        this._mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Panel.Front);
+                        this._mirroringPreview = cameraDevice.EnclosureLocation.Panel == Panel.Front;
                     }
 
                     await this.StartPreviewAsync();
@@ -384,6 +380,7 @@ namespace RemoteLedMatrix
                 tempWriteableBitmap = new WriteableBitmap(previewFrame.PixelWidth, previewFrame.PixelHeight);
                 previewFrame.CopyToBuffer(tempWriteableBitmap.PixelBuffer);
 
+                // Crop to a square, based on the smallest side
                 int minEdge = Math.Min(tempWriteableBitmap.PixelWidth, tempWriteableBitmap.PixelHeight);
 
                 tempWriteableBitmap = tempWriteableBitmap
@@ -391,9 +388,9 @@ namespace RemoteLedMatrix
                     .Resize(App.LedMatrix.PixelWidth, App.LedMatrix.PixelHeight, WriteableBitmapExtensions.Interpolation.Bilinear);
 
                 WriteableBitmap previewFrameImageSource =
-                    tempWriteableBitmap.Resize(
-                        (int) this.postViewbox.Height,
-                        (int) this.postViewbox.Width,
+                    tempWriteableBitmap.Rotate(90).Resize(
+                        (int)this.postViewbox.Height,
+                        (int)this.postViewbox.Width,
                         WriteableBitmapExtensions.Interpolation.NearestNeighbor);
 
                 this.previewFrameImage.Source = previewFrameImageSource;
@@ -470,76 +467,7 @@ namespace RemoteLedMatrix
             }
         }
 
-        /// <summary>
-        /// Saves a SoftwareBitmap to the Pictures library with the specified name
-        /// </summary>
-        /// <param name="bitmap"></param>
-        /// <returns></returns>
-        private static async Task SaveSoftwareBitmapAsync(SoftwareBitmap bitmap)
-        {
-            StorageFile file = await KnownFolders.PicturesLibrary.CreateFileAsync("PreviewFrame.jpg", CreationCollisionOption.GenerateUniqueName);
-            using (IRandomAccessStream outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
-            {
-                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, outputStream);
-
-                // Grab the data from the SoftwareBitmap
-                encoder.SetSoftwareBitmap(bitmap);
-                await encoder.FlushAsync();
-            }
-        }
-
-        /// <summary>
-        /// Applies a basic effect to a Bgra8 SoftwareBitmap in-place
-        /// </summary>
-        /// <param name="bitmap">SoftwareBitmap that will receive the effect</param>
-        private unsafe void ApplyGreenFilter(SoftwareBitmap bitmap)
-        {
-            // Effect is hard-coded to operate on BGRA8 format only
-            if (bitmap.BitmapPixelFormat == BitmapPixelFormat.Bgra8)
-            {
-                // In BGRA8 format, each pixel is defined by 4 bytes
-                const int BYTES_PER_PIXEL = 4;
-
-                using (BitmapBuffer buffer = bitmap.LockBuffer(BitmapBufferAccessMode.ReadWrite))
-                {
-                    using (IMemoryBufferReference reference = buffer.CreateReference())
-                    {
-                        if (reference is IMemoryBufferByteAccess)
-                        {
-                            // Get a pointer to the pixel buffer
-                            byte* data;
-                            uint capacity;
-                            ((IMemoryBufferByteAccess) reference).GetBuffer(out data, out capacity);
-
-                            // Get information about the BitmapBuffer
-                            BitmapPlaneDescription desc = buffer.GetPlaneDescription(0);
-
-                            // Iterate over all pixels
-                            for (uint row = 0; row < desc.Height; row++)
-                            {
-                                for (uint col = 0; col < desc.Width; col++)
-                                {
-                                    // Index of the current pixel in the buffer (defined by the next 4 bytes, BGRA8)
-                                    long currPixel = desc.StartIndex + desc.Stride*row + BYTES_PER_PIXEL*col;
-
-                                    // Read the current pixel information into b,g,r channels (leave out alpha channel)
-                                    byte b = data[currPixel + 0]; // Blue
-                                    byte g = data[currPixel + 1]; // Green
-                                    byte r = data[currPixel + 2]; // Red
-
-                                    // Boost the green channel, leave the other two untouched
-                                    data[currPixel + 0] = b;
-                                    data[currPixel + 1] = (byte) Math.Min(g + 80, 255);
-                                    data[currPixel + 2] = r;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        #endregion Helper functions 
+        #endregion Helper functions
 
         private void SettingButton_Click(object sender, RoutedEventArgs e)
         {
@@ -637,7 +565,7 @@ namespace RemoteLedMatrix
 
             string previousConnection = App.CurrentAppSettings.PreviousConnectionName;
 
-            if (!string.IsNullOrEmpty(previousConnection) &&
+            if (this.currentConnection == null && !string.IsNullOrEmpty(previousConnection) &&
                 connections.Any(c => c.DisplayName == App.CurrentAppSettings.PreviousConnectionName))
             {
                 await this.Connect(
@@ -657,9 +585,10 @@ namespace RemoteLedMatrix
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Disconnecting;
                 });
 
-                App.SerialStream.end();
-                App.Firmata.finish();
-                App.Arduino.Dispose();
+                App.SerialStream = null;
+                App.Firmata = null;
+                App.Arduino = null;
+
                 this.currentConnection = null;
 
                 await this.dispatcher.RunAsync(
