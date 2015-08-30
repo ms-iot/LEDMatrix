@@ -32,22 +32,28 @@
     mc:Ignorable="d"
     RequestedTheme="Dark">
 
+    <Page.BottomAppBar>
+        <CommandBar IsSticky="True" IsOpen="True">
+            <!--<AppBarToggleButton x:Name="TestButton"  Icon="Upload" Label="Test" Click="TestButton_Click" />
+            <AppBarToggleButton x:Name="PreviewButton" Icon="Camera" Label="Preview" Click="PreviewButton_Click" />-->
+            <AppBarToggleButton x:Name="SettingButton" Icon="Setting" Label="Settings" Click="SettingsToggle_Unclick"  IsChecked="True"/>
+        </CommandBar>
+    </Page.BottomAppBar>
+    
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="32"/>
+            <!--<RowDefinition Height="Auto"/>
+            <RowDefinition Height="32"/>-->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Button Grid.Row="0" Height="32" Margin="0,32,0,0" Width="32" Click="NavBack" Visibility="Visible">
-            <Image Source="Assets/left.png" Width="32" Height="32" Stretch="UniformToFill"/>
-        </Button>
-
-        <TextBlock Grid.Row="1" Margin="12,12,0,0" Text="SETTINGS" FontSize="16" FontFamily="Segoe UI Light"/>
-        <Pivot Grid.Row="2" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <!--<AppBarButton Grid.Row="0" Height="32" Margin="0,32,0,0" Width="32" Click="NavBack" Visibility="Visible" Icon="Back" />-->
+            <!--<Image Source="Assets/left.png" Width="32" Height="32" Stretch="Fill" Margin="0"/>-->
+        <!--</AppBarButton>-->
+        <Pivot Grid.Row="0">
             <PivotItem>
                 <PivotItem.Header>
-                    <TextBlock Text="Settings" FontSize="48" FontFamily="Segoe UI Light"  FontWeight="Thin" Margin="0,0,0,-18"/>
+                    <TextBlock Text="Settings" FontSize="48" FontFamily="Segoe UI Light"  FontWeight="Thin" Margin="0,0,0,0"/>
                 </PivotItem.Header>
                 <Grid HorizontalAlignment="Stretch" Margin="0,20,0,0">
                     <Grid.RowDefinitions>
@@ -94,9 +100,16 @@
                         </Grid>
                     </StackPanel>
 
-                    <TextBlock Grid.Row="1"
-                        x:Name="ConnectMessage" FontSize="18" Width="Auto" VerticalAlignment="Bottom" 
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Grid.Column="0" Width="64" x:Name="ConnectionStateIcon" Glyph="{Binding Source={StaticResource CurrentAppSettings}, Path=CurrentConnectionStateGlyph}" FontFamily="Segoe MDL2 Assets" FontSize="36" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                        x:Name="ConnectMessage" FontSize="24" Width="Auto" VerticalAlignment="Center" 
                            Text="{Binding Source={StaticResource CurrentAppSettings}, Path=CurrentConnectionStateText}"/>
+                    </Grid>
 
                     <Grid Grid.Row="3">
                         <Grid.ColumnDefinitions>

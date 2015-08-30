@@ -111,5 +111,10 @@ namespace RemoteLedMatrix
         {
             this.Frame.GoBack();
         }
+
+        private void SettingsToggle_Unclick(object sender, RoutedEventArgs e)
+        {
+            this.Frame.GoBack();
+        }
     }
 }
