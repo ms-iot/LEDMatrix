@@ -226,10 +226,35 @@ namespace RemoteLedMatrix
             {
                 this.AddOrUpdateValue(value);
                 this.OnPropertyChanged("CurrentConnectionStateText");
+                this.OnPropertyChanged("CurrentConnectionStateGlyph");
             }
         }
 
         public string CurrentConnectionStateText => ((ConnectionState)this.CurrentConnectionState).ToString();
+
+        public string CurrentConnectionStateGlyph
+        {
+            get
+            {
+                switch (this.CurrentConnectionState)
+                {
+                    case (int)ConnectionState.Connected:
+                        return "\uE8FB";
+                    case (int)ConnectionState.Connecting:
+                    //return "&#xE117;";
+                        return "\uE895";
+                    case (int)ConnectionState.CouldNotConnect:
+                        return "\uE8D0";
+                    case (int)ConnectionState.Disconnecting:
+                        return "\uE895";
+                        //return "&#xE117;";
+                    case (int)ConnectionState.NotConnected:
+                        return "\uE711";
+                }
+
+                return string.Empty;
+            }
+        }
 
         public List<string> DeviceNames { get; set; }
 
