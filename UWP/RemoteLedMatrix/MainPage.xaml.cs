@@ -723,6 +723,7 @@ namespace RemoteLedMatrix
                 CoreDispatcherPriority.Normal,
                 () =>
                 {
+                    App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Connected;
                     this.Frame.Navigate(typeof(MainPage));
                 });
         }
