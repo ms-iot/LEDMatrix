@@ -1,4 +1,4 @@
-﻿// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 namespace RemoteLedMatrix
 {
@@ -6,10 +6,6 @@ namespace RemoteLedMatrix
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Maker.Firmata;
-    using Microsoft.Maker.RemoteWiring;
-    using Microsoft.Maker.Serial;
-    using RemoteLedMatrix.Helpers;
     using Windows.ApplicationModel;
     using Windows.Devices.Enumeration;
     using Windows.Foundation;
@@ -18,8 +14,6 @@ namespace RemoteLedMatrix
     using Windows.Media;
     using Windows.Media.Capture;
     using Windows.Media.MediaProperties;
-    using Windows.Storage;
-    using Windows.Storage.Streams;
     using Windows.System.Display;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
@@ -27,10 +21,14 @@ namespace RemoteLedMatrix
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media.Imaging;
     using Windows.UI.Xaml.Navigation;
+    using Microsoft.Maker.Firmata;
+    using Microsoft.Maker.RemoteWiring;
+    using Microsoft.Maker.Serial;
+    using RemoteLedMatrix.Helpers;
     using Panel = Windows.Devices.Enumeration.Panel;
 
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// Main page of the RemoteLedMatrix application.  Contains the actual controls for the led matrix, as well as the settings bar and instance.
     /// </summary>
     public sealed partial class MainPage : Page
     {
@@ -51,7 +49,6 @@ namespace RemoteLedMatrix
         private DisplayRequest keepScreenOnRequest;
 
         #region Camera variables
-
         // Receive notifications about rotation of the UI and apply any necessary rotation to the preview stream
         private readonly DisplayInformation _displayInformation = DisplayInformation.GetForCurrentView();
         private DisplayOrientations _displayOrientation = DisplayOrientations.Portrait;
@@ -76,7 +73,7 @@ namespace RemoteLedMatrix
             Instance = this;
 
             App.LedMatrix = new Lpd8806Matrix(48, 48);
-            //App.LedMatrix = new LedMatrixPanel(32, 32);
+            // App.LedMatrix = new LedMatrixPanel(32, 32);
 
             this.InitializeComponent();
 
@@ -152,7 +149,6 @@ namespace RemoteLedMatrix
         protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             // Handling of this event is included for completenes, as it will only fire when navigating between pages and this sample only includes one page
-
             await this.CleanupCameraAsync();
 
             this._displayInformation.OrientationChanged -= this.DisplayInformation_OrientationChanged;
@@ -160,53 +156,12 @@ namespace RemoteLedMatrix
 
         #endregion Constructor, lifecycle and navigation
 
-        #region Event handlers
-
-        /// <summary>
-        /// This event will fire when the page is rotated
-        /// </summary>
-        /// <param name="sender">The event source.</param>
-        /// <param name="args">The event data.</param>
-        private async void DisplayInformation_OrientationChanged(DisplayInformation sender, object args)
-        {
-            this._displayOrientation = sender.CurrentOrientation;
-
-            if (this._isPreviewing)
-            {
-                await this.SetPreviewRotationAsync();
-            }
-        }
-
-        private async void GetPreviewFrameButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            // If preview is not running, no preview frames can be acquired
-            if (!this._isPreviewing)
-            {
-                return;
-            }
-
-            await this.GetPreviewFrameAsSoftwareBitmapAsync();
-
-            this.DisplayButton.IsEnabled = true;
-        }
-
-        private async void MediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
-        {
-            Debug.WriteLine("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
-
-            await this.CleanupCameraAsync();
-
-            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => this.PreviewButton.IsChecked = this._isPreviewing);
-        }
-
-        #endregion Event handlers
-
         #region MediaCapture methods
 
         /// <summary>
         /// Initializes the MediaCapture, registers events, gets camera device information for mirroring and rotating, and starts preview
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task representing the async event status</returns>
         private async Task InitializeCameraAsync()
         {
             Debug.WriteLine("InitializeCameraAsync");
@@ -271,7 +226,7 @@ namespace RemoteLedMatrix
         /// <summary>
         /// Starts the preview and adjusts it for for rotation and mirroring after making a request to keep the screen on and unlocks the UI
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task representing the async event status</returns>
         private async Task StartPreviewAsync()
         {
             Debug.WriteLine("StartPreviewAsync");
@@ -307,6 +262,7 @@ namespace RemoteLedMatrix
         /// <summary>
         /// Gets the current orientation of the UI in relation to the device and applies a corrective rotation to the preview
         /// </summary>
+        /// <returns>Task representing the async event status</returns>
         private async Task SetPreviewRotationAsync()
         {
             // Only need to update the orientation if the camera is mounted on the device
@@ -330,7 +286,7 @@ namespace RemoteLedMatrix
         /// <summary>
         /// Stops the preview and deactivates a display request, to allow the screen to go into power saving modes, and locks the UI
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task representing the async event status</returns>
         private async Task StopPreviewAsync()
         {
             try
@@ -359,7 +315,7 @@ namespace RemoteLedMatrix
         /// Gets the current preview frame as a SoftwareBitmap, displays its properties in a TextBlock, and can optionally display the image
         /// in the UI and/or save it to disk as a jpg
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task representing the async event status</returns>
         private async Task GetPreviewFrameAsSoftwareBitmapAsync()
         {
             // Get information about the preview
@@ -400,7 +356,7 @@ namespace RemoteLedMatrix
         /// <summary>
         /// Cleans up the camera resources (after stopping the preview if necessary) and unregisters from MediaCapture events
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task representing the async event status</returns>
         private async Task CleanupCameraAsync()
         {
             if (this._isInitialized)
@@ -467,59 +423,9 @@ namespace RemoteLedMatrix
             }
         }
 
-        #endregion Helper functions
-
-        private void SettingButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Frame.Navigate(typeof(SettingsPage));
-        }
-
-        private void PreviewButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (this._isPreviewing)
-            {
-                this.CleanupCameraAsync();
-            }
-            else
-            {
-                this.InitializeCameraAsync();
-            }
-        }
-
-        private void TestButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.TestButton.IsChecked.Value)
-            {
-                this.captureTimer = new DispatcherTimer();
-                this.captureTimer.Interval = new TimeSpan(0, 0, 0, 1);
-                this.captureTimer.Tick += this.captureTimerTick;
-                this.captureTimer.Start();
-            }
-            else
-            {
-                this.captureTimer.Stop();
-            }
-        }
-
         /// <summary>
-        /// Performs a capture every timer tick, to provide continuous streaming
+        /// Populates the list of connections in the settings UI
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void captureTimerTick(object sender, object e)
-        {
-            ((DispatcherTimer)sender).Stop();
-            IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal,
-                async () =>
-                {
-                    await this.GetPreviewFrameAsSoftwareBitmapAsync();
-                    await Task.Delay(10);
-                    await App.LedMatrix.DisplayImage(tempWriteableBitmap);
-                    ((DispatcherTimer)sender).Start();
-                });
-        }
-
         public async void PopulateList()
         {
             Connections list;
@@ -543,6 +449,10 @@ namespace RemoteLedMatrix
             App.CurrentAppSettings.ConnectionList = list;
         }
 
+        /// <summary>
+        /// Refreshes the connections from the available device sources
+        /// </summary>
+        /// <returns>Collection of connection objects available to the app</returns>
         public async Task<Connections> RefreshConnections()
         {
             Connections connections = new Connections();
@@ -576,6 +486,9 @@ namespace RemoteLedMatrix
             return connections;
         }
 
+        /// <summary>
+        /// Disconnects the current connection and cleans up any related objects
+        /// </summary>
         public async void Disconnect()
         {
             if (this.currentConnection != null)
@@ -584,6 +497,11 @@ namespace RemoteLedMatrix
                 {
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Disconnecting;
                 });
+
+                if (App.SerialStream != null)
+                {
+                    App.SerialStream.end();
+                }
 
                 App.SerialStream = null;
                 App.Firmata = null;
@@ -623,7 +541,7 @@ namespace RemoteLedMatrix
         /// </summary>
         /// <param name="selectedConnection">Connection to connect to </param>
         /// <returns>true if connection succeeded.</returns>
-        public async Task<bool> Connect(Connection selectedConnection)
+        public async Task Connect(Connection selectedConnection)
         {
             bool result = false;
             if (this.currentConnection != null)
@@ -645,36 +563,21 @@ namespace RemoteLedMatrix
                 switch (this.currentConnection.ConnectionType)
                 {
                     case ConnectionType.BluetoothSerial:
-                        BluetoothSerial bluetooth = new BluetoothSerial(selectedConnection.Source as DeviceInformation);
-                        bluetooth.ConnectionEstablished += this.OnConnectionEstablished;
-                        bluetooth.ConnectionFailed += this.OnConnectionFailed;
-                        bluetooth.begin(115200, 0);
-
-                        App.SerialStream = bluetooth;
+                        App.SerialStream = new BluetoothSerial(selectedConnection.Source);
                         break;
                     case ConnectionType.UsbSerial:
-                        UsbSerial usbSerial = new UsbSerial(selectedConnection.Source as DeviceInformation);
-                        usbSerial.ConnectionEstablished += this.OnConnectionEstablished;
-                        usbSerial.ConnectionFailed += this.OnConnectionFailed;
-                        usbSerial.ConnectionLost += this.OnConnectionLost;
-                        usbSerial.begin(115200, SerialConfig.SERIAL_8N1);
-
-                        App.SerialStream = usbSerial;
+                        App.SerialStream = new UsbSerial(selectedConnection.Source);
                         break;
                 }
 
                 App.Firmata = new UwpFirmata();
-                App.Arduino = new RemoteDevice(App.Firmata);
+                App.Firmata.FirmataConnectionFailed += this.OnConnectionFailed;
+                App.Firmata.FirmataConnectionLost += this.OnConnectionLost;
+                App.Firmata.FirmataConnectionReady += this.OnConnectionEstablished;
+                App.SerialStream.begin(115200, SerialConfig.SERIAL_8N1);
                 App.Firmata.begin(App.SerialStream);
                 App.Firmata.startListening();
-
-                // start a timer for connection timeout
-                this.timeout = new DispatcherTimer();
-                this.timeout.Interval = new TimeSpan(0, 0, 30);
-                this.timeout.Tick += this.Connection_TimeOut;
-                this.timeout.Start();
-
-                result = true;
+                App.Arduino = new RemoteDevice(App.Firmata);
             }
             catch (Exception e)
             {
@@ -684,26 +587,139 @@ namespace RemoteLedMatrix
                     Debug.WriteLine("{0} hit while connecting", e.StackTrace);
                 });
             }
-
-            return result;
         }
 
+        #endregion Helper functions
+
+        #region Event handlers
+
+        /// <summary>
+        /// This event will fire when the page is rotated
+        /// </summary>
+        /// <param name="sender">The event source.</param>
+        /// <param name="args">The event data.</param>
+        private async void DisplayInformation_OrientationChanged(DisplayInformation sender, object args)
+        {
+            this._displayOrientation = sender.CurrentOrientation;
+
+            if (this._isPreviewing)
+            {
+                await this.SetPreviewRotationAsync();
+            }
+        }
+
+        private async void GetPreviewFrameButton_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // If preview is not running, no preview frames can be acquired
+            if (!this._isPreviewing)
+            {
+                return;
+            }
+
+            await this.GetPreviewFrameAsSoftwareBitmapAsync();
+
+            this.DisplayButton.IsEnabled = true;
+        }
+
+        private async void MediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
+        {
+            Debug.WriteLine("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
+
+            await this.CleanupCameraAsync();
+
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => this.PreviewButton.IsChecked = this._isPreviewing);
+        }
+
+        /// <summary>
+        /// Handler for clicking the setting button
+        /// </summary>
+        /// <param name="sender">Control being clicked</param>
+        /// <param name="e">Click event</param>
+        private void SettingButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Frame.Navigate(typeof(SettingsPage));
+        }
+
+        /// <summary>
+        /// Handler for clicking the preview button
+        /// </summary>
+        /// <param name="sender">Control being clicked</param>
+        /// <param name="e">Click event</param>
+        private void PreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this._isPreviewing)
+            {
+                this.CleanupCameraAsync();
+            }
+            else
+            {
+                this.InitializeCameraAsync();
+            }
+        }
+
+        /// <summary>
+        /// Handler for clicking the test button
+        /// </summary>
+        /// <param name="sender">Control being clicked</param>
+        /// <param name="e">Click event</param>
+        private void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.TestButton.IsChecked.Value)
+            {
+                this.captureTimer = new DispatcherTimer();
+                this.captureTimer.Interval = new TimeSpan(0, 0, 0, 1);
+                this.captureTimer.Tick += this.captureTimerTick;
+                this.captureTimer.Start();
+            }
+            else
+            {
+                this.captureTimer.Stop();
+            }
+        }
+
+        /// <summary>
+        /// Performs a capture every timer tick, to provide continuous streaming
+        /// </summary>
+        /// <param name="sender">Timer object sending the tick event</param>
+        /// <param name="e">Tick event</param>
+        private void captureTimerTick(object sender, object e)
+        {
+            ((DispatcherTimer)sender).Stop();
+            IAsyncAction action = this.Dispatcher.RunAsync(
+                CoreDispatcherPriority.Normal,
+                async () =>
+                {
+                    await this.GetPreviewFrameAsSoftwareBitmapAsync();
+                    await Task.Delay(10);
+                    await App.LedMatrix.DisplayImage(tempWriteableBitmap);
+                    ((DispatcherTimer)sender).Start();
+                });
+        }
+
+        /// <summary>
+        /// Handler for lost connection event, logs and displays a UI message
+        /// </summary>
+        /// <param name="message">Message of why the connection was lost</param>
         private void OnConnectionLost(string message)
         {
             IAsyncAction action = this.Dispatcher.RunAsync(
                 CoreDispatcherPriority.Normal,
                 () =>
                 {
-                    App.CurrentAppSettings.CurrentConnectionState = (int) ConnectionState.NotConnected;
+                    App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.NotConnected;
                     this.Frame.Navigate(typeof(SettingsPage));
                 });
 
-            Debug.WriteLine("Connection lost!  '{0}'", message);
+            Debug.WriteLine(string.Format("Connection lost!  '{0}'", message));
         }
 
+        /// <summary>
+        /// Handler for failed connection event, logs and displays a UI message
+        /// </summary>
+        /// <param name="message">Failure detail message</param>
         private void OnConnectionFailed(string message)
         {
-            this.timeout.Stop();
+            Debug.WriteLine(string.Format("Connection failed!  '{0}'", message));
             IAsyncAction action = this.Dispatcher.RunAsync(
                 CoreDispatcherPriority.Normal,
                 () =>
@@ -712,12 +728,12 @@ namespace RemoteLedMatrix
                 });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void OnConnectionEstablished()
         {
-            this.timeout.Stop();
-
-            App.LedMatrix.Initialize();
-            App.CurrentAppSettings.PreviousConnectionName = this.currentConnection.DisplayName;
+            Debug.WriteLine("Connection established!");
 
             IAsyncAction action = this.Dispatcher.RunAsync(
                 CoreDispatcherPriority.Normal,
@@ -725,19 +741,17 @@ namespace RemoteLedMatrix
                 {
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Connected;
                     this.Frame.Navigate(typeof(MainPage));
+
+                    App.LedMatrix.Initialize();
+                    App.CurrentAppSettings.PreviousConnectionName = this.currentConnection.DisplayName;
                 });
         }
 
-        private void Connection_TimeOut(object sender, object e)
-        {
-            IAsyncAction action = this.Dispatcher.RunAsync(
-                CoreDispatcherPriority.Normal,
-                () =>
-                {
-                    App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.CouldNotConnect;
-                });
-        }
-
+        /// <summary>
+        /// Display button tapped event handler
+        /// </summary>
+        /// <param name="sender">Control sending the event</param>
+        /// <param name="e">Tap event</param>
         private async void Display_Tapped(object sender, TappedRoutedEventArgs e)
         {
             if (null != tempWriteableBitmap)
@@ -745,5 +759,7 @@ namespace RemoteLedMatrix
                 await App.LedMatrix.DisplayImage(tempWriteableBitmap);
             }
         }
+
+        #endregion Event handlers
     }
 }

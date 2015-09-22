@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 namespace RemoteLedMatrix.Helpers
 {
     using System;
