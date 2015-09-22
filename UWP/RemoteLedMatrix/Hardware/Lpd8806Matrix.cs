@@ -1,14 +1,16 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+using Windows.Storage.Streams;
 
 namespace RemoteLedMatrix
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Hardware;
-    using Helpers;
     using Windows.UI;
     using Windows.UI.Xaml.Media.Imaging;
+    using RemoteLedMatrix.Hardware;
+    using RemoteLedMatrix.Helpers;
 
     /// <summary>
     /// Implementation of <see cref="ILedMatrix"/> for LPD8806/WS2801 based RGB leds, arranged into a
@@ -67,8 +69,8 @@ namespace RemoteLedMatrix
         /// </summary>
         public void Initialize()
         {
-            App.Firmata.sendSysex(LED_CONFIG);
-            App.Firmata.sendSysex(LED_RESET);
+            App.Firmata.sendSysex(LED_CONFIG, new Buffer(0));
+            App.Firmata.sendSysex(LED_RESET, new Buffer(0));
         }
 
         /// <summary>
@@ -97,13 +99,13 @@ namespace RemoteLedMatrix
 
             IEnumerable<byte> bytes = colors.Get21BitPixelBytes();
 
-            App.Firmata.sendSysex(LED_RESET);
+            App.Firmata.sendSysex(LED_RESET, new Buffer(0));
             await Task.Delay(1);
 
             App.Firmata.sendPixelBlob(bytes, 30);
             await Task.Delay(1);
 
-            App.Firmata.sendSysex(LED_RESET);
+            App.Firmata.sendSysex(LED_RESET, new Buffer(0));
             await Task.Delay(1);
         }
     }

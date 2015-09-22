@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 namespace RemoteLedMatrix
 {
     using System;
@@ -34,38 +35,11 @@ namespace RemoteLedMatrix
         }
 
         /// <summary>
-        /// Recursively selects elements from a hierarchy
+        /// Executes an action for each item in a sequence
         /// </summary>
-        /// <remarks>
-        /// Recursive select extension from a StackOverflow reply by Jon Skeet:
-        /// http://stackoverflow.com/questions/2012274/how-to-unroll-a-recursive-structure
-        /// </remarks>
-        /// <typeparam name="T">Type of object that forms the hierarchy</typeparam>
-        /// <param name="subjects">Hierarchy to recurse over</param>
-        /// <param name="selector">What to select from the hierarchy</param>
-        /// <returns>List of elements matching the selector, from any depth in the hierarchy</returns>
-        public static IEnumerable<T> SelectRecursive<T>(
-            this IEnumerable<T> subjects,
-            Func<T, IEnumerable<T>> selector)
-        {
-            if (subjects == null)
-            {
-                yield break;
-            }
-
-            Queue<T> stillToProcess = new Queue<T>(subjects);
-
-            while (stillToProcess.Count > 0)
-            {
-                T item = stillToProcess.Dequeue();
-                yield return item;
-                foreach (T child in selector(item))
-                {
-                    stillToProcess.Enqueue(child);
-                }
-            }
-        }
-
+        /// <typeparam name="TItem">Type of item in the sequence</typeparam>
+        /// <param name="sequence">Items to iterate over and execute the action against</param>
+        /// <param name="action">Action to execute</param>
         public static void ForEach<TItem>(this IEnumerable<TItem> sequence, Action<TItem> action)
         {
             if (null == sequence)
