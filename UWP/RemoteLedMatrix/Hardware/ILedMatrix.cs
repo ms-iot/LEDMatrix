@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 namespace RemoteLedMatrix.Hardware
 {
     using System.Threading.Tasks;

@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maker.Firmata;
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 namespace RemoteLedMatrix.Helpers
 {
+    using System.Collections.Generic;
+    using Microsoft.Maker.Firmata;
+
+    /// <summary>
+    /// Extensions to the firmata client to make sending large amounts of data easier
+    /// </summary>
     public static class FirmataExtensions
     {
         public const byte SYSEX_BLOB_COMMAND = 0x7C; // send a series of 7-bit resolution characters
 
-        public static void sendSysex(this UwpFirmata firmata, byte command)
-        {
-            firmata.beginSysex(command);
-            firmata.endSysex();
-        }
-
+        /// <summary>
+        /// Sends a blob of pixel data to the client
+        /// </summary>
+        /// <param name="firmata">Firmata client to send the command to</param>
+        /// <param name="bytes">Pixel data to send</param>
         public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes)
         {
             firmata.write((byte)Command.START_SYSEX);
@@ -30,6 +30,12 @@ namespace RemoteLedMatrix.Helpers
             firmata.write((byte)Command.END_SYSEX);
         }
 
+        /// <summary>
+        /// Sends a blob of pixel data to the client, broken up into arbitraily sized chunks
+        /// </summary>
+        /// <param name="firmata">Firmata client to send the command to</param>
+        /// <param name="bytes">Pixel data to send</param>
+        /// <param name="inSetsOf">How many bytes to send in a single firmata command</param>
         public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes, int inSetsOf)
         {
             if (inSetsOf == 0)
