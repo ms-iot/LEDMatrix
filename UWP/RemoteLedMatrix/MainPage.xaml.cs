@@ -43,7 +43,7 @@ namespace RemoteLedMatrix
         private readonly CoreDispatcher dispatcher;
 
         public bool IsInSettings = false;
-        public Connection currentConnection;
+        public Connection CurrentConnection;
         private DispatcherTimer captureTimer;
         private DisplayRequest keepScreenOnRequest;
 
@@ -477,7 +477,7 @@ namespace RemoteLedMatrix
 
             string previousConnection = App.CurrentAppSettings.PreviousConnectionName;
 
-            if (this.currentConnection == null && !string.IsNullOrEmpty(previousConnection) &&
+            if (this.CurrentConnection == null && !string.IsNullOrEmpty(previousConnection) &&
                 connections.Any(c => c.DisplayName == App.CurrentAppSettings.PreviousConnectionName))
             {
                 await this.Connect(
@@ -493,7 +493,7 @@ namespace RemoteLedMatrix
         /// </summary>
         public async void Disconnect()
         {
-            if (this.currentConnection != null)
+            if (this.CurrentConnection != null)
             {
                 await this.dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
@@ -509,7 +509,7 @@ namespace RemoteLedMatrix
                 App.Firmata = null;
                 App.Arduino = null;
 
-                this.currentConnection = null;
+                this.CurrentConnection = null;
 
                 await this.dispatcher.RunAsync(
                     CoreDispatcherPriority.Normal,
@@ -545,7 +545,7 @@ namespace RemoteLedMatrix
         /// <returns>true if connection succeeded.</returns>
         public async Task Connect(Connection selectedConnection)
         {
-            if (this.currentConnection != null)
+            if (this.CurrentConnection != null)
             {
                 App.SerialStream.end();
                 this.Disconnect();
@@ -559,9 +559,9 @@ namespace RemoteLedMatrix
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Connecting;
                 });
 
-                this.currentConnection = selectedConnection;
+                this.CurrentConnection = selectedConnection;
 
-                switch (this.currentConnection.ConnectionType)
+                switch (this.CurrentConnection.ConnectionType)
                 {
                     case ConnectionType.BluetoothSerial:
                         App.SerialStream = new BluetoothSerial(selectedConnection.Source);
@@ -744,7 +744,7 @@ namespace RemoteLedMatrix
                     this.Frame.Navigate(typeof(MainPage));
 
                     App.LedMatrix.Initialize();
-                    App.CurrentAppSettings.PreviousConnectionName = this.currentConnection.DisplayName;
+                    App.CurrentAppSettings.PreviousConnectionName = this.CurrentConnection.DisplayName;
                 });
         }
 
