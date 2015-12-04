@@ -546,7 +546,6 @@ namespace RemoteLedMatrix
         /// <returns>true if connection succeeded.</returns>
         public async Task Connect(Connection selectedConnection)
         {
-            bool result = false;
             if (this.currentConnection != null)
             {
                 App.SerialStream.end();
