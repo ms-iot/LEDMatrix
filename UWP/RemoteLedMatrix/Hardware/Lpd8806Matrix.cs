@@ -101,7 +101,7 @@ namespace RemoteLedMatrix
             App.Firmata.sendSysex(LED_RESET, new Buffer(0));
             await Task.Delay(1);
 
-            App.Firmata.sendPixelBlob(bytes, 30);
+            App.Firmata.SendPixelBlob(bytes, 30);
             await Task.Delay(1);
 
             App.Firmata.sendSysex(LED_RESET, new Buffer(0));
