@@ -2,6 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
     "StyleCop.Analyzers": "1.0.0-beta001",
+    "Windows-Remote-Arduino": "1.2.0",
     "WriteableBitmapEx": "1.5.0"
   },
   "frameworks": {
