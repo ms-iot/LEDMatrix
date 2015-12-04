@@ -266,7 +266,10 @@ namespace RemoteLedMatrix
         private async Task SetPreviewRotationAsync()
         {
             // Only need to update the orientation if the camera is mounted on the device
-            if (this._externalCamera) return;
+            if (this._externalCamera)
+            {
+                return;
+            }
 
             // Calculate which way and how far to rotate the preview
             int rotationDegrees = ConvertDisplayOrientationToDegrees(this._displayOrientation);
@@ -668,7 +671,7 @@ namespace RemoteLedMatrix
             {
                 this.captureTimer = new DispatcherTimer();
                 this.captureTimer.Interval = new TimeSpan(0, 0, 0, 1);
-                this.captureTimer.Tick += this.captureTimerTick;
+                this.captureTimer.Tick += this.CaptureTimerTick;
                 this.captureTimer.Start();
             }
             else
@@ -682,7 +685,7 @@ namespace RemoteLedMatrix
         /// </summary>
         /// <param name="sender">Timer object sending the tick event</param>
         /// <param name="e">Tick event</param>
-        private void captureTimerTick(object sender, object e)
+        private void CaptureTimerTick(object sender, object e)
         {
             ((DispatcherTimer)sender).Stop();
             IAsyncAction action = this.Dispatcher.RunAsync(
