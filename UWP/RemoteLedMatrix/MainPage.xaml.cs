@@ -6,6 +6,10 @@ namespace RemoteLedMatrix
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Maker.Firmata;
+    using Microsoft.Maker.RemoteWiring;
+    using Microsoft.Maker.Serial;
+    using RemoteLedMatrix.Helpers;
     using Windows.ApplicationModel;
     using Windows.Devices.Enumeration;
     using Windows.Foundation;
@@ -21,10 +25,6 @@ namespace RemoteLedMatrix
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media.Imaging;
     using Windows.UI.Xaml.Navigation;
-    using Microsoft.Maker.Firmata;
-    using Microsoft.Maker.RemoteWiring;
-    using Microsoft.Maker.Serial;
-    using RemoteLedMatrix.Helpers;
     using Panel = Windows.Devices.Enumeration.Panel;
 
     /// <summary>
