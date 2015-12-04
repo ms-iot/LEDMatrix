@@ -44,7 +44,6 @@ namespace RemoteLedMatrix
 
         public bool IsInSettings = false;
         public Connection currentConnection;
-        private DispatcherTimer timeout;
         private DispatcherTimer captureTimer;
         private DisplayRequest keepScreenOnRequest;
 
