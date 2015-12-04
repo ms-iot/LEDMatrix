@@ -26,6 +26,7 @@ namespace RemoteLedMatrix
         public static ILedMatrix LedMatrix;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="App"/> class.
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
@@ -42,7 +43,6 @@ namespace RemoteLedMatrix
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-
 #if DEBUG
             if (Debugger.IsAttached)
             {
