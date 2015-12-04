@@ -91,7 +91,7 @@ namespace RemoteLedMatrix
 
         public string PreviousConnectionName
         {
-            get { return this.GetValueOrDefault(""); }
+            get { return this.GetValueOrDefault(string.Empty); }
             set { this.AddOrUpdateValue(value); }
         }
 
