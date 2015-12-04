@@ -70,7 +70,7 @@ namespace RemoteLedMatrix
 
             IEnumerable<byte> bytes = colors.Get21BitPixelBytes();
 
-            App.Firmata.sendPixelBlob(bytes, 30);
+            App.Firmata.SendPixelBlob(bytes, 30);
         }
     }
 }
