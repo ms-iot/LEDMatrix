@@ -189,7 +189,7 @@ namespace RemoteLedMatrix
             handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public bool Remove(Object value, [CallerMemberName] string key = null)
+        public bool Remove(object value, [CallerMemberName] string key = null)
         {
             if (this.localSettings.Values.ContainsKey(key))
             {
@@ -200,7 +200,7 @@ namespace RemoteLedMatrix
             return false;
         }
 
-        public bool AddOrUpdateValue(Object value, [CallerMemberName] string Key = null)
+        public bool AddOrUpdateValue(object value, [CallerMemberName] string Key = null)
         {
             bool valueChanged = false;
 
