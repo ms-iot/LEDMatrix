@@ -140,25 +140,25 @@ namespace RemoteLedMatrix.Helpers
 
             if (hue < TwoPiOverThree)
             {
-                red = perceptualTransformA(hue, saturation, intensity);
-                green = perceptualTransformB(hue, saturation, intensity);
-                blue = perceptualTransformC(hue, saturation, intensity);
+                red = PerceptualTransformA(hue, saturation, intensity);
+                green = PerceptualTransformB(hue, saturation, intensity);
+                blue = PerceptualTransformC(hue, saturation, intensity);
             }
             else if (hue < FourPiOverThree)
             {
                 hue = hue - TwoPiOverThree;
 
-                red = perceptualTransformC(hue, saturation, intensity);
-                green = perceptualTransformA(hue, saturation, intensity);
-                blue = perceptualTransformB(hue, saturation, intensity);
+                red = PerceptualTransformC(hue, saturation, intensity);
+                green = PerceptualTransformA(hue, saturation, intensity);
+                blue = PerceptualTransformB(hue, saturation, intensity);
             }
             else
             {
                 hue = hue - FourPiOverThree;
 
-                red = perceptualTransformB(hue, saturation, intensity);
-                green = perceptualTransformC(hue, saturation, intensity);
-                blue = perceptualTransformA(hue, saturation, intensity);
+                red = PerceptualTransformB(hue, saturation, intensity);
+                green = PerceptualTransformC(hue, saturation, intensity);
+                blue = PerceptualTransformA(hue, saturation, intensity);
             }
 
             return Color.FromArgb(255, red, green, blue);
@@ -171,7 +171,7 @@ namespace RemoteLedMatrix.Helpers
         /// <param name="saturation">Saturation of the color</param>
         /// <param name="intensity">Intensity of the color</param>
         /// <returns>Byte representing the color after transformation</returns>
-        private static byte perceptualTransformA(double hue, float saturation, float intensity)
+        private static byte PerceptualTransformA(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 + (saturation * (Math.Cos(hue) / Math.Cos(PiOverThree - hue))));
 
@@ -185,7 +185,7 @@ namespace RemoteLedMatrix.Helpers
         /// <param name="saturation">Saturation of the color</param>
         /// <param name="intensity">Intensity of the color</param>
         /// <returns>Byte representing the color after transformation</returns>
-        private static byte perceptualTransformB(double hue, float saturation, float intensity)
+        private static byte PerceptualTransformB(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 + (saturation * (1 - (Math.Cos(hue) / Math.Cos(PiOverThree - hue)))));
 
@@ -199,7 +199,7 @@ namespace RemoteLedMatrix.Helpers
         /// <param name="saturation">Saturation of the color</param>
         /// <param name="intensity">Intensity of the color</param>
         /// <returns>Byte representing the color after transformation</returns>
-        private static byte perceptualTransformC(double hue, float saturation, float intensity)
+        private static byte PerceptualTransformC(double hue, float saturation, float intensity)
         {
             double value = intensity * (1 - saturation);
 

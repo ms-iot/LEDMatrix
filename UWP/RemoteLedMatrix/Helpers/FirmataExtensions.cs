@@ -17,7 +17,7 @@ namespace RemoteLedMatrix.Helpers
         /// </summary>
         /// <param name="firmata">Firmata client to send the command to</param>
         /// <param name="bytes">Pixel data to send</param>
-        public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes)
+        public static void SendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes)
         {
             firmata.write((byte)Command.START_SYSEX);
             firmata.write(SYSEX_BLOB_COMMAND);
@@ -36,15 +36,15 @@ namespace RemoteLedMatrix.Helpers
         /// <param name="firmata">Firmata client to send the command to</param>
         /// <param name="bytes">Pixel data to send</param>
         /// <param name="inSetsOf">How many bytes to send in a single firmata command</param>
-        public static void sendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes, int inSetsOf)
+        public static void SendPixelBlob(this UwpFirmata firmata, IEnumerable<byte> bytes, int inSetsOf)
         {
             if (inSetsOf == 0)
             {
-                firmata.sendPixelBlob(bytes);
+                firmata.SendPixelBlob(bytes);
                 return;
             }
 
-            bytes.InSetsOf(inSetsOf).ForEach(firmata.sendPixelBlob);
+            bytes.InSetsOf(inSetsOf).ForEach(firmata.SendPixelBlob);
             firmata.flush();
         }
     }
