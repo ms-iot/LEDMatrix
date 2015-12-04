@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Windows.Storage.Streams;
-
 namespace RemoteLedMatrix
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Windows.UI;
-    using Windows.UI.Xaml.Media.Imaging;
     using RemoteLedMatrix.Hardware;
     using RemoteLedMatrix.Helpers;
+    using Windows.Storage.Streams;
+    using Windows.UI;
+    using Windows.UI.Xaml.Media.Imaging;
 
     /// <summary>
     /// Implementation of <see cref="ILedMatrix"/> for LPD8806/WS2801 based RGB leds, arranged into a

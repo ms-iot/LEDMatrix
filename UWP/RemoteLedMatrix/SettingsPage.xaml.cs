@@ -2,10 +2,10 @@
 
 namespace RemoteLedMatrix
 {
+    using RemoteLedMatrix.Helpers;
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Navigation;
-    using RemoteLedMatrix.Helpers;
 
     /// <summary>
     /// Page for all the configurable settings, as well as managing the firmata serial connection
