@@ -732,7 +732,7 @@ namespace RemoteLedMatrix
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private void OnConnectionEstablished()
         {
