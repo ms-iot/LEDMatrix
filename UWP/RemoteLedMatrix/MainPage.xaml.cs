@@ -32,9 +32,6 @@ namespace RemoteLedMatrix
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        //Size of the LED matrix
-        private static readonly int LedMatrixWidth = 48;
-        private static readonly int LedMatrixHeight = 48;
 
         // Rotation metadata to apply to the preview stream (MF_MT_VIDEO_ROTATION)
         // Reference: http://msdn.microsoft.com/en-us/library/windows/apps/xaml/hh868174.aspx
@@ -75,7 +72,8 @@ namespace RemoteLedMatrix
         {
             Instance = this;
 
-            App.LedMatrix = new Lpd8806Matrix(LedMatrixWidth, LedMatrixHeight);
+            // Size must match with what the App.LedMatrix object type expects
+            App.LedMatrix = new Lpd8806Matrix(48, 48);
 
             this.InitializeComponent();
 
