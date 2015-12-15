@@ -4,10 +4,10 @@ namespace RemoteLedMatrix
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using RemoteLedMatrix.Hardware;
-    using RemoteLedMatrix.Helpers;
     using Windows.UI;
     using Windows.UI.Xaml.Media.Imaging;
+    using RemoteLedMatrix.Hardware;
+    using RemoteLedMatrix.Helpers;
 
     /// <summary>
     /// Implementation of <see cref="ILedMatrix"/> for the AdaFruit 32x32 LED MatrixPanel

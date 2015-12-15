@@ -8,8 +8,8 @@ namespace RemoteLedMatrix
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using RemoteLedMatrix.Helpers;
     using Windows.Storage;
+    using RemoteLedMatrix.Helpers;
 
     /// <summary>
     /// Enumeration of possible states for a connection
