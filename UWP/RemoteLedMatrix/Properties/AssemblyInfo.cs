@@ -15,10 +15,10 @@ using System.Runtime.InteropServices;
 
 // Version information for an assembly consists of the following four values:
 //
-//      Major Version
-//      Minor Version
-//      Build Number
-//      Revision
+//      Major Version 1
+//      Minor Version 0
+//      Build Number 0
+//      Revision 0
 //
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
