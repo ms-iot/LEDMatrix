@@ -32,6 +32,7 @@ namespace RemoteLedMatrix
     /// </summary>
     public sealed partial class MainPage : Page
     {
+
         // Rotation metadata to apply to the preview stream (MF_MT_VIDEO_ROTATION)
         // Reference: http://msdn.microsoft.com/en-us/library/windows/apps/xaml/hh868174.aspx
         private static readonly Guid RotationKey = new Guid("C380465D-2271-428C-9B83-ECEA3B4A85C1");
@@ -43,8 +44,7 @@ namespace RemoteLedMatrix
         private readonly CoreDispatcher dispatcher;
 
         public bool IsInSettings = false;
-        public Connection currentConnection;
-        private DispatcherTimer timeout;
+        public Connection CurrentConnection;
         private DispatcherTimer captureTimer;
         private DisplayRequest keepScreenOnRequest;
 
@@ -72,8 +72,8 @@ namespace RemoteLedMatrix
         {
             Instance = this;
 
+            // Size must match with what the App.LedMatrix object type expects
             App.LedMatrix = new Lpd8806Matrix(48, 48);
-            // App.LedMatrix = new LedMatrixPanel(32, 32);
 
             this.InitializeComponent();
 
@@ -266,7 +266,10 @@ namespace RemoteLedMatrix
         private async Task SetPreviewRotationAsync()
         {
             // Only need to update the orientation if the camera is mounted on the device
-            if (this._externalCamera) return;
+            if (this._externalCamera)
+            {
+                return;
+            }
 
             // Calculate which way and how far to rotate the preview
             int rotationDegrees = ConvertDisplayOrientationToDegrees(this._displayOrientation);
@@ -475,7 +478,7 @@ namespace RemoteLedMatrix
 
             string previousConnection = App.CurrentAppSettings.PreviousConnectionName;
 
-            if (this.currentConnection == null && !string.IsNullOrEmpty(previousConnection) &&
+            if (this.CurrentConnection == null && !string.IsNullOrEmpty(previousConnection) &&
                 connections.Any(c => c.DisplayName == App.CurrentAppSettings.PreviousConnectionName))
             {
                 await this.Connect(
@@ -491,7 +494,7 @@ namespace RemoteLedMatrix
         /// </summary>
         public async void Disconnect()
         {
-            if (this.currentConnection != null)
+            if (this.CurrentConnection != null)
             {
                 await this.dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
@@ -507,7 +510,7 @@ namespace RemoteLedMatrix
                 App.Firmata = null;
                 App.Arduino = null;
 
-                this.currentConnection = null;
+                this.CurrentConnection = null;
 
                 await this.dispatcher.RunAsync(
                     CoreDispatcherPriority.Normal,
@@ -543,8 +546,7 @@ namespace RemoteLedMatrix
         /// <returns>true if connection succeeded.</returns>
         public async Task Connect(Connection selectedConnection)
         {
-            bool result = false;
-            if (this.currentConnection != null)
+            if (this.CurrentConnection != null)
             {
                 App.SerialStream.end();
                 this.Disconnect();
@@ -558,9 +560,9 @@ namespace RemoteLedMatrix
                     App.CurrentAppSettings.CurrentConnectionState = (int)ConnectionState.Connecting;
                 });
 
-                this.currentConnection = selectedConnection;
+                this.CurrentConnection = selectedConnection;
 
-                switch (this.currentConnection.ConnectionType)
+                switch (this.CurrentConnection.ConnectionType)
                 {
                     case ConnectionType.BluetoothSerial:
                         App.SerialStream = new BluetoothSerial(selectedConnection.Source);
@@ -668,7 +670,7 @@ namespace RemoteLedMatrix
             {
                 this.captureTimer = new DispatcherTimer();
                 this.captureTimer.Interval = new TimeSpan(0, 0, 0, 1);
-                this.captureTimer.Tick += this.captureTimerTick;
+                this.captureTimer.Tick += this.CaptureTimerTick;
                 this.captureTimer.Start();
             }
             else
@@ -682,7 +684,7 @@ namespace RemoteLedMatrix
         /// </summary>
         /// <param name="sender">Timer object sending the tick event</param>
         /// <param name="e">Tick event</param>
-        private void captureTimerTick(object sender, object e)
+        private void CaptureTimerTick(object sender, object e)
         {
             ((DispatcherTimer)sender).Stop();
             IAsyncAction action = this.Dispatcher.RunAsync(
@@ -729,7 +731,7 @@ namespace RemoteLedMatrix
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private void OnConnectionEstablished()
         {
@@ -743,7 +745,7 @@ namespace RemoteLedMatrix
                     this.Frame.Navigate(typeof(MainPage));
 
                     App.LedMatrix.Initialize();
-                    App.CurrentAppSettings.PreviousConnectionName = this.currentConnection.DisplayName;
+                    App.CurrentAppSettings.PreviousConnectionName = this.CurrentConnection.DisplayName;
                 });
         }
 

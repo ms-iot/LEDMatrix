@@ -25,32 +25,22 @@ namespace RemoteLedMatrix
 
     public class AppSettings : INotifyPropertyChanged
     {
+        private bool isListening = false;
         private ApplicationDataContainer localSettings;
         private Connections connectionList;
         private Connection selectedConnection;
+        private string[] connectionStateText;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private string[] ConnectionStateText;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = this.PropertyChanged;
-            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public static AppSettings Instance;
-
-        private bool isListening = false;
+        private static AppSettings instance;
 
         public AppSettings()
         {
-            if (Instance == null)
+            if (instance == null)
             {
-                Instance = this;
+                instance = this;
             }
 
-            this.ConnectionStateText = Enum.GetNames(typeof (ConnectionState)).ToArray();
+            this.connectionStateText = Enum.GetNames(typeof(ConnectionState)).ToArray();
             this.DeviceNames = new List<string> { "Bluetooth", "ServerClient" };
 
             try
@@ -67,54 +57,7 @@ namespace RemoteLedMatrix
             }
         }
 
-        public bool AddOrUpdateValue(Object value, [CallerMemberName] string Key = null)
-        {
-            bool valueChanged = false;
-
-            if (this.localSettings.Values.ContainsKey(Key))
-            {
-                if (this.localSettings.Values[Key] != value)
-                {
-                    this.localSettings.Values[Key] = value;
-                    valueChanged = true;
-                }
-            }
-            else
-            {
-                this.localSettings.Values.Add(Key, value);
-                valueChanged = true;
-            }
-
-            return valueChanged;
-        }
-
-        public T GetValueOrDefault<T>(T defaultValue, [CallerMemberName] string key = null)
-        {
-            T value;
-
-            // If the key exists, retrieve the value.
-            if (this.localSettings.Values.ContainsKey(key))
-            {
-                value = (T)this.localSettings.Values[key];
-            }
-            else
-            {
-                value = defaultValue;
-            }
-
-            return value;
-        }
-
-        public bool Remove(Object value, [CallerMemberName] string key = null)
-        {
-            if (this.localSettings.Values.ContainsKey(key))
-            {
-                this.localSettings.DeleteContainer(key);
-                return true;
-            }
-
-            return false;
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public bool AutoConnect
         {
@@ -148,7 +91,7 @@ namespace RemoteLedMatrix
 
         public string PreviousConnectionName
         {
-            get { return this.GetValueOrDefault(""); }
+            get { return this.GetValueOrDefault(string.Empty); }
             set { this.AddOrUpdateValue(value); }
         }
 
@@ -239,6 +182,61 @@ namespace RemoteLedMatrix
         }
 
         public List<string> DeviceNames { get; set; }
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = this.PropertyChanged;
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public bool Remove(object value, [CallerMemberName] string key = null)
+        {
+            if (this.localSettings.Values.ContainsKey(key))
+            {
+                this.localSettings.DeleteContainer(key);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool AddOrUpdateValue(object value, [CallerMemberName] string Key = null)
+        {
+            bool valueChanged = false;
+
+            if (this.localSettings.Values.ContainsKey(Key))
+            {
+                if (this.localSettings.Values[Key] != value)
+                {
+                    this.localSettings.Values[Key] = value;
+                    valueChanged = true;
+                }
+            }
+            else
+            {
+                this.localSettings.Values.Add(Key, value);
+                valueChanged = true;
+            }
+
+            return valueChanged;
+        }
+
+        public T GetValueOrDefault<T>(T defaultValue, [CallerMemberName] string key = null)
+        {
+            T value;
+
+            // If the key exists, retrieve the value.
+            if (this.localSettings.Values.ContainsKey(key))
+            {
+                value = (T)this.localSettings.Values[key];
+            }
+            else
+            {
+                value = defaultValue;
+            }
+
+            return value;
+        }
 
         public void ReportChanged(string key)
         {

@@ -51,7 +51,7 @@ namespace RemoteLedMatrix
         {
             App.CurrentAppSettings.PreviousConnectionName = string.Empty;
 
-            if (MainPage.Instance.currentConnection != null)
+            if (MainPage.Instance.CurrentConnection != null)
             {
                 MainPage.Instance.Disconnect();
             }
