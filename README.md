@@ -1,4 +1,6 @@
 # LEDMatrix
+The instructions for replicating the hardware for this project can be found on https://www.hackster.io/windows-iot/led-matrix-c00e39
+
 ## Universal Windows Platform
 The "big brain" component of this project can run on any device that supports the Universal Windows Platform.  It has been tested on Windows Phone 10 and Windows 10 Desktop.
 ## Arduino
